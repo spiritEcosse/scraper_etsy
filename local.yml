@@ -11,6 +11,7 @@ services:
       dockerfile: ./compose/local/django/Dockerfile
     image: scraper_etsy_local_django
     container_name: django
+    restart: on-failure
     depends_on:
       - postgres
       - mailhog
@@ -20,7 +21,7 @@ services:
       - ./.envs/.local/.django
       - ./.envs/.local/.postgres
     ports:
-      - "8000:8000"
+      - "8003:8000"
     command: /start
 
   postgres:
