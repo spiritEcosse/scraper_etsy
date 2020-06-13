@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -12,12 +12,12 @@ class Request(models.Model):
         (DONE, 'Done'),
     )
     code = models.PositiveSmallIntegerField(
-        verbose_name=pgettext_lazy("Status code of server"),
+        verbose_name=_("Status code of server"),
     )
     status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES, default=PENDING)
     started_at = models.DateTimeField(auto_now_add=True)
     ended_at = models.DateTimeField(auto_now_add=True)
-    search = models.CharField(verbose_name=pgettext_lazy("Search phrase"), max_length=500)
+    search = models.CharField(verbose_name=_("Search phrase"), max_length=500)
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
 
     class MPTTMeta:
@@ -46,8 +46,8 @@ class Request(models.Model):
 
 
 class Item(models.Model):
-    title = models.CharField(verbose_name=pgettext_lazy("Title"), max_length=500)
-    url = models.URLField(verbose_name=pgettext_lazy("Url"))  # View makes preview this url (get image)
+    title = models.CharField(verbose_name=_("Title"), max_length=500)
+    url = models.URLField(verbose_name=_("Url"))  # View makes preview this url (get image)
     request = models.ForeignKey(Request, related_name="items", related_query_name="item", on_delete=models.CASCADE)
 
     def __str__(self):
@@ -55,7 +55,7 @@ class Item(models.Model):
 
 
 class Tag(models.Model):
-    name = models.CharField(verbose_name=pgettext_lazy("Name"), max_length=500)
+    name = models.CharField(verbose_name=_("Name"), max_length=500)
     item = models.ForeignKey(Item, related_name="items", related_query_name="tag", on_delete=models.CASCADE)
 
     def __str__(self):
