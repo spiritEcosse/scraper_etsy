@@ -8,7 +8,7 @@ from scraper_etsy.items.tasks import run_crawler
 class RequestCreateView(CreateAPIView):
     serializer_class = RequestSerializer
     queryset = Request.objects.all()
-    url = "https://www.etsy.com/search?q={}"
+    url = "etsy.com/search?q={}"
 
     def perform_create(self, serializer):
         super(RequestCreateView, self).perform_create(serializer)
