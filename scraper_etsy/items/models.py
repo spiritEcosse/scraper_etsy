@@ -12,7 +12,7 @@ class Request(models.Model):
         (DONE, 'Done'),
     )
     code = models.PositiveSmallIntegerField(
-        verbose_name=_("Status code of server"),
+        verbose_name=_("Status code of server"), null=True
     )
     status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES, default=PENDING)
     started_at = models.DateTimeField(auto_now_add=True)
