@@ -301,7 +301,7 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",), # AllowAny
 }
 # Your stuff...
 # ------------------------------------------------------------------------------
@@ -310,3 +310,5 @@ REST_FRAMEWORK = {
 CORS_ORIGIN_WHITELIST = (
     "http://localhost:3000",
 )
+
+CORS_ALLOW_CREDENTIALS = True
