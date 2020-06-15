@@ -19,12 +19,13 @@ class Request(models.Model):
     ended_at = models.DateTimeField(auto_now_add=True)
     search = models.CharField(verbose_name=_("Search phrase"), max_length=500)
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    url = models.URLField(verbose_name=_("Url"), max_length=1000)  # View makes preview this url (get image)
 
     class MPTTMeta:
         order_insertion_by = ("-started_at", )
 
     def __str__(self):
-        return "{} started at {} has status {}".format(self.search, self.started_at, self.get_status_display())
+        return "'{}' started at {} has status {}".format(self.search, self.started_at, self.get_status_display())
 
     def says_done(self):
         self.status = self.DONE
@@ -47,11 +48,11 @@ class Request(models.Model):
 
 class Item(models.Model):
     title = models.CharField(verbose_name=_("Title"), max_length=500)
-    url = models.URLField(verbose_name=_("Url"))  # View makes preview this url (get image)
+    h1 = models.CharField(verbose_name=_("h1"), max_length=500)
     request = models.ForeignKey(Request, related_name="items", related_query_name="item", on_delete=models.CASCADE)
 
     def __str__(self):
-        return "{} of url {}".format(self.title, self.url)
+        return self.title
 
 
 class Tag(models.Model):

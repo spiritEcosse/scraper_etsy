@@ -52,6 +52,8 @@ services:
       - local_postgres_data_backups:/backups
     env_file:
       - ./.envs/.local/.postgres
+    ports:
+      - "5434:5432"
 
   mailhog:
     image: mailhog/mailhog:v1.0.0
@@ -92,3 +94,8 @@ services:
     ports:
       - "5551:5555"
     command: /start-flower
+
+  phantomjs:
+    image: nkovacs/selenium-standalone-phantomjs
+    ports:
+      - "4444:4444"
