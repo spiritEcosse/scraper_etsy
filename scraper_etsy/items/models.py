@@ -4,7 +4,7 @@ from rest_framework import status
 from mptt.models import MPTTModel, TreeForeignKey
 
 
-class Request(models.Model):
+class Request(MPTTModel):
     PENDING = 0
     DONE = 1
     STATUS_CHOICES = (
@@ -25,7 +25,7 @@ class Request(models.Model):
         order_insertion_by = ("-started_at", )
 
     def __str__(self):
-        return "'{}' started at {} has status {}".format(self.search, self.started_at, self.get_status_display())
+        return "search '{}' started at {} has status {}".format(self.search, self.started_at, self.get_status_display())
 
     def says_done(self):
         self.status = self.DONE
