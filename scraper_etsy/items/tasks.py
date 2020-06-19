@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from django.db import transaction
 
 from config import celery_app
-from scraper_etsy.items.models import Request, Item
+from scraper_etsy.items.models import Request, Item, Tag
 
 
 @celery_app.task()
@@ -25,8 +25,15 @@ def search(request_id):
     parser = ItemsParser(request)
     parser.run()
     Request.objects.bulk_update(parser.requests, ["status", "code"])
-    Item.objects.bulk_create(parser.items)
-    # Tag.objects.bulk_create((Tag(name=, item=) for in ))
+    items = Item.objects.bulk_create(parser.items)
+
+    tags = []
+    for index, tags_ in enumerate(parser.tags):
+        for tag in tags_:
+            setattr(tag, "item", items[index])
+            tags.append(tag)
+
+    Tag.objects.bulk_create(tags)
 
 
 class Parser:
@@ -82,15 +89,17 @@ class RequestParser(Parser):
 
 class ItemsParser(Parser):
     xpath_h1 = "h1[data-buy-box-listing-title]"
+    xpath_tags = 'div[id="wt-content-toggle-tags-read-more"] a'
 
     def __init__(self, request):
         super(ItemsParser, self).__init__(request)
         self.requests = self.request.get_children()
         self.items = []
+        self.tags = []
 
     async def post_request(self, request, response):
         soup = await super(ItemsParser, self).post_request(request, response)
 
-        self.items.append(
-            Item(title=soup.title.string, h1=soup.select(self.xpath_h1, limit=1)[0].string.strip(), request=request)
-        )
+        item = Item(title=soup.title.string, h1=soup.select_one(self.xpath_h1).string.strip(), request=request)
+        self.items.append(item)
+        self.tags.append([Tag(name=tag_a.string.strip()) for tag_a in soup.select(self.xpath_tags)])

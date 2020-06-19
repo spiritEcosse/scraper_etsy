@@ -57,7 +57,7 @@ class Item(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(verbose_name=_("Name"), max_length=500)
-    item = models.ForeignKey(Item, related_name="items", related_query_name="tag", on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, related_name="tags", related_query_name="tag", on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
