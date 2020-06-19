@@ -94,8 +94,3 @@ services:
     ports:
       - "5551:5555"
     command: /start-flower
-
-  phantomjs:
-    image: nkovacs/selenium-standalone-phantomjs
-    ports:
-      - "4444:4444"

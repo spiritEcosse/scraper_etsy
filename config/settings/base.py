@@ -2,7 +2,7 @@
 Base settings to build other settings files upon.
 """
 from pathlib import Path
-
+import os
 import environ
 
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
@@ -312,3 +312,4 @@ CORS_ORIGIN_WHITELIST = (
 )
 
 CORS_ALLOW_CREDENTIALS = True
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"

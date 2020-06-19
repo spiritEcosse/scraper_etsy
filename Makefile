@@ -37,6 +37,11 @@ stop_rm_up:
 	&& docker-compose rm -f \
 	&& docker-compose up --build --remove-orphans
 
+up:
+	export COMPOSE_FILE=${COMPOSE_FILE} \
+	&& docker-compose stop \
+	&& docker-compose up
+
 deploy_hard:
 	export COMPOSE_FILE=${COMPOSE_FILE} \
 	&& docker-compose stop \

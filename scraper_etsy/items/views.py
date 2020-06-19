@@ -2,7 +2,7 @@ from rest_framework import viewsets
 
 from scraper_etsy.items.models import Request
 from scraper_etsy.items.serializer import RequestSerializer
-from scraper_etsy.items.tasks import run_crawler
+from scraper_etsy.items.tasks import search
 
 
 class RequestViewSet(viewsets.ModelViewSet):
@@ -14,4 +14,4 @@ class RequestViewSet(viewsets.ModelViewSet):
         super(RequestViewSet, self).perform_create(serializer)
         serializer.instance.url = self.url.format(serializer.instance.search)
         serializer.instance.save()
-        run_crawler.delay(serializer.instance.id)
+        search.delay(serializer.instance.id)
