@@ -11,7 +11,6 @@ class RequestViewSet(viewsets.ModelViewSet):
     url = "https://www.etsy.com/search?q={}"
 
     def perform_create(self, serializer):
+        serializer.validated_data.update({'url': self.url.format(serializer.validated_data['search'])})
         super(RequestViewSet, self).perform_create(serializer)
-        serializer.instance.url = self.url.format(serializer.instance.search)
-        serializer.instance.save()
         search.delay(serializer.instance.id)
