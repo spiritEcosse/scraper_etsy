@@ -8,7 +8,7 @@ from django.conf import settings
 from django.db import transaction
 
 from config import celery_app
-from scraper_etsy.items.models import Request, Item, Tag
+from scraper_etsy.items.models import Request, Item, Tag, Shop
 
 
 @celery_app.task(bind=True)
@@ -27,6 +27,16 @@ def search(self, request_id, limit=settings.LIMIT, offset=0):
     parser.run()
 
     Request.objects.bulk_update(parser.requests, ["status", "code"])
+    shop_requests = Request.objects.bulk_create(parser.shop_requests)
+
+    for index, shop in enumerate(parser.shops):
+        setattr(shop, "request", shop_requests[index])
+
+    shops = Shop.objects.bulk_create(parser.shops)
+
+    for index, item in enumerate(parser.items):
+        setattr(item, "shop", shops[index])
+
     items = Item.objects.bulk_create(parser.items)
 
     tags = []
@@ -102,12 +112,15 @@ class RequestParser(Parser):
 class ItemsParser(Parser):
     xpath_h1 = "h1[data-buy-box-listing-title]"
     xpath_tags = 'div[id="wt-content-toggle-tags-read-more"] a'
+    xpath_shop = 'a[href^="https://www.etsy.com/shop/"]'
 
     def __init__(self, request, limit, offset):
         super(ItemsParser, self).__init__(request, limit, offset)
         self.requests = self.request.get_children()[self.offset:self.limit]
         self.items = []
         self.tags = []
+        self.shops = []
+        self.shop_requests = []
 
     async def post_request(self, request, response):
         soup = await super(ItemsParser, self).post_request(request, response)
@@ -115,4 +128,12 @@ class ItemsParser(Parser):
         tags = soup.select(self.xpath_tags)
         if len(tags) > settings.COUNT_TAGS:
             self.items.append(Item(h1=soup.select_one(self.xpath_h1).string.strip(), request=request))
+            shop = soup.select_one(self.xpath_shop)
+            self.shops.append(Shop(title=shop.find("span").string.strip()))
+            self.shop_requests.append(
+                Request(
+                    url=shop["href"], parent=request, lft=1, rght=1, tree_id=request.tree_id,
+                    level=request.level + 1
+                )
+            )
             self.tags.append([Tag(name=tag_a.string.strip()) for tag_a in tags])
