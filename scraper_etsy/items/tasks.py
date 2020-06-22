@@ -6,9 +6,12 @@ import async_timeout
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.db import transaction
+from redis import from_url
 
 from config import celery_app
 from scraper_etsy.items.models import Request, Item, Tag, Shop
+
+redis_connection = from_url(settings.REDIS_URL)
 
 
 @celery_app.task(bind=True)
@@ -97,13 +100,15 @@ class RequestParser(Parser):
 
     async def post_request(self, request, response):
         soup = await super(RequestParser, self).post_request(request, response)
-        urls = set()
         tag_a = iter(soup.select(self.xpath)[self.offset:self.offset + self.limit])
+        urls = set()
 
         while len(urls) < self.limit:
             parsed_url = urlparse(next(tag_a)["href"])
             url = parsed_url.scheme + "://" + parsed_url.hostname + parsed_url.path
-            urls.add(url)
+
+            if redis_connection.sadd(request.id, url):
+                urls.add(url)
 
         self.children = [
             Request(
