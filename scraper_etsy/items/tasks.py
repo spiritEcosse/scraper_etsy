@@ -12,18 +12,18 @@ from scraper_etsy.items.models import Request, Item, Tag, Shop
 
 
 @celery_app.task(bind=True)
-def search(self, request_id, limit=settings.LIMIT, offset=0):
+def search(self, request_id, limit=settings.LIMIT, offset=0, limit_q=settings.LIMIT):
     request = Request.objects.get(id=request_id)
-    parser = RequestParser(request, limit=limit, offset=offset)
-    parser.run()
-    Request.objects.bulk_update(parser.requests, ["status", "code"])
-    Request.objects.bulk_create(parser.children)
+    parser_request = RequestParser(request, limit=limit, offset=offset)
+    parser_request.run()
+    Request.objects.bulk_update(parser_request.requests, ["status", "code"])
+    Request.objects.bulk_create(parser_request.children)
 
     with transaction.atomic(using=None):
         Request.objects.rebuild()
 
     request = Request.objects.get(id=request_id)
-    parser = ItemsParser(request, limit=limit, offset=0)
+    parser = ItemsParser(request, limit=limit_q, offset=0)
     parser.run()
 
     Request.objects.bulk_update(parser.requests, ["status", "code"])
@@ -52,7 +52,11 @@ def search(self, request_id, limit=settings.LIMIT, offset=0):
         self.retry(
             countdown=settings.COUNTDOWN,
             max_retries=settings.MAX_RETRIES,
-            kwargs={"limit": next_limit, "offset": limit}
+            kwargs={
+                "limit": next_limit,
+                "offset": limit + offset,
+                "limit_q": len(parser_request.children)
+            }
         )
 
 
@@ -101,12 +105,12 @@ class RequestParser(Parser):
             url = parsed_url.scheme + "://" + parsed_url.hostname + parsed_url.path
             urls.add(url)
 
-        self.children = (
+        self.children = [
             Request(
                 url=url, parent=request, lft=1, rght=1, tree_id=request.tree_id,
                 level=request.level + 1
             ) for url in urls
-        )
+        ]
 
 
 class ItemsParser(Parser):
