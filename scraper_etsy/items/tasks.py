@@ -104,9 +104,7 @@ class RequestParser(Parser):
         urls = set()
 
         while len(urls) < self.limit:
-            parsed_url = urlparse(next(tag_a)["href"])
-            url = parsed_url.scheme + "://" + parsed_url.hostname + parsed_url.path
-
+            url = next(tag_a)["href"].split("?")[0]
             if redis_connection.sadd(request.id, url):
                 urls.add(url)
 
