@@ -100,6 +100,6 @@ class ItemsParser(Parser):
     async def post_request(self, request, response):
         soup = await super(ItemsParser, self).post_request(request, response)
 
-        item = Item(title=soup.title.string, h1=soup.select_one(self.xpath_h1).string.strip(), request=request)
+        item = Item(h1=soup.select_one(self.xpath_h1).string.strip(), request=request)
         self.items.append(item)
         self.tags.append([Tag(name=tag_a.string.strip()) for tag_a in soup.select(self.xpath_tags)])

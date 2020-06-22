@@ -47,12 +47,11 @@ class Request(MPTTModel):
 
 
 class Item(models.Model):
-    title = models.CharField(verbose_name=_("Title"), max_length=500)
     h1 = models.CharField(verbose_name=_("h1"), max_length=500)
     request = models.ForeignKey(Request, related_name="items", related_query_name="item", on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.title
+        return self.h1
 
 
 class Tag(models.Model):
