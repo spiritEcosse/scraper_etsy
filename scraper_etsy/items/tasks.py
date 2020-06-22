@@ -4,16 +4,17 @@ from urllib.parse import urlparse
 import aiohttp
 import async_timeout
 from bs4 import BeautifulSoup
+from django.conf import settings
 from django.db import transaction
 
 from config import celery_app
 from scraper_etsy.items.models import Request, Item, Tag
 
 
-@celery_app.task()
-def search(request_id):
+@celery_app.task(bind=True)
+def search(self, request_id, limit=settings.LIMIT, offset=0):
     request = Request.objects.get(id=request_id)
-    parser = RequestParser(request)
+    parser = RequestParser(request, limit=limit, offset=offset)
     parser.run()
     Request.objects.bulk_update(parser.requests, ["status", "code"])
     Request.objects.bulk_create(parser.children)
@@ -22,8 +23,9 @@ def search(request_id):
         Request.objects.rebuild()
 
     request = Request.objects.get(id=request_id)
-    parser = ItemsParser(request)
+    parser = ItemsParser(request, limit=limit, offset=0)
     parser.run()
+
     Request.objects.bulk_update(parser.requests, ["status", "code"])
     items = Item.objects.bulk_create(parser.items)
 
@@ -35,11 +37,21 @@ def search(request_id):
 
     Tag.objects.bulk_create(tags)
 
+    next_limit = limit - len(parser.items)
+    if next_limit:
+        self.retry(
+            countdown=settings.COUNTDOWN,
+            max_retries=settings.MAX_RETRIES,
+            kwargs={"limit": next_limit, "offset": limit}
+        )
+
 
 class Parser:
-    def __init__(self, request):
+    def __init__(self, request, limit, offset):
         self.request = request
         self.requests = ()
+        self.limit = limit
+        self.offset = offset
 
     def run(self):
         loop = asyncio.get_event_loop()
@@ -64,17 +76,17 @@ class Parser:
 class RequestParser(Parser):
     xpath = "div[data-search-results] ul li a"
 
-    def __init__(self, request):
-        super(RequestParser, self).__init__(request)
+    def __init__(self, request, limit, offset):
+        super(RequestParser, self).__init__(request, limit, offset)
         self.requests = (self.request, )
         self.children = ()
 
     async def post_request(self, request, response):
         soup = await super(RequestParser, self).post_request(request, response)
         urls = set()
-        tag_a = iter(soup.select(self.xpath))
+        tag_a = iter(soup.select(self.xpath)[self.offset:self.offset + self.limit])
 
-        while len(urls) < 5:
+        while len(urls) < self.limit:
             parsed_url = urlparse(next(tag_a)["href"])
             url = parsed_url.scheme + "://" + parsed_url.hostname + parsed_url.path
             urls.add(url)
@@ -91,9 +103,9 @@ class ItemsParser(Parser):
     xpath_h1 = "h1[data-buy-box-listing-title]"
     xpath_tags = 'div[id="wt-content-toggle-tags-read-more"] a'
 
-    def __init__(self, request):
-        super(ItemsParser, self).__init__(request)
-        self.requests = self.request.get_children()
+    def __init__(self, request, limit, offset):
+        super(ItemsParser, self).__init__(request, limit, offset)
+        self.requests = self.request.get_children()[self.offset:self.limit]
         self.items = []
         self.tags = []
 
@@ -101,6 +113,6 @@ class ItemsParser(Parser):
         soup = await super(ItemsParser, self).post_request(request, response)
 
         tags = soup.select(self.xpath_tags)
-        if len(tags) > 10:
+        if len(tags) > settings.COUNT_TAGS:
             self.items.append(Item(h1=soup.select_one(self.xpath_h1).string.strip(), request=request))
             self.tags.append([Tag(name=tag_a.string.strip()) for tag_a in tags])

@@ -67,4 +67,7 @@ CELERY_TASK_EAGER_PROPAGATES = True
 # Your stuff...
 # ------------------------------------------------------------------------------
 
-REMOTE_DRIVER = 'http://phantomjs:4444/wd/hub'
+COUNTDOWN = 2
+MAX_RETRIES = 100
+LIMIT = 5
+COUNT_TAGS = 10
