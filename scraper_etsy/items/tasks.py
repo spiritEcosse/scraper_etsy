@@ -11,14 +11,16 @@ from config import celery_app
 from scraper_etsy.items.models import Request, Item, Tag, Shop
 import logging
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 redis_connection = from_url(settings.REDIS_URL)
 
 
 @celery_app.task(bind=True)
-def search(self, request_id, limit=settings.LIMIT, offset=0, limit_q=settings.LIMIT):
+def search(self, request_id, limit=settings.LIMIT, offset=0):
+    logger.info(">>>>>>>> {}:{}".format(limit, offset))
+
     request = Request.objects.get(id=request_id)
     parser_request = RequestParser(request, limit=limit, offset=offset)
     parser_request.run()
@@ -29,7 +31,7 @@ def search(self, request_id, limit=settings.LIMIT, offset=0, limit_q=settings.LI
         Request.objects.rebuild()  # WARNING: use Node.objects.partial_rebuild(tree_id)
 
     request = Request.objects.get(id=request_id)
-    parser = ItemsParser(request, limit=limit_q, offset=0)
+    parser = ItemsParser(request, limit=len(parser_request.children), offset=0)
     parser.run()
 
     Request.objects.bulk_update(parser.requests, ["status", "code"])
@@ -53,7 +55,6 @@ def search(self, request_id, limit=settings.LIMIT, offset=0, limit_q=settings.LI
             kwargs={
                 "limit": next_limit,
                 "offset": limit + offset,
-                "limit_q": len(parser_request.children)
             }
         )
 
@@ -112,11 +113,15 @@ class RequestParser(Parser):
 
     async def post_request(self, request, response):
         soup = await super(RequestParser, self).post_request(request, response)
-        tag_a = iter(soup.select(self.xpath)[self.offset:self.offset + self.limit])
+        logger.info("================= data-search-results \n \n {}".format(
+            "\n".join([tag_a["href"] for tag_a in soup.select(self.xpath)[self.offset:self.offset + self.limit]]))
+        )
+        tags_a = soup.select(self.xpath)[self.offset:self.offset + self.limit]
         urls = set()
 
-        while len(urls) < self.limit:
-            url = next(tag_a)["href"].split("?")[0]
+        for tag_a in tags_a:
+            url = tag_a["href"].split("?")[0]
+
             if redis_connection.sadd(request.get_root().id, url):
                 urls.add(url)
 
