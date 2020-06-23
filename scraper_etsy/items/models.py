@@ -27,6 +27,9 @@ class Request(MPTTModel):
     def __str__(self):
         return "search '{}' started at {} has status {}".format(self.search, self.started_at, self.get_status_display())
 
+    def get_descendants(self, level=1):
+        return self.get_descendants().filter(level__gte=self.level + level)
+
     def says_done(self):
         self.status = self.DONE
 
@@ -48,7 +51,9 @@ class Request(MPTTModel):
 
 class Shop(models.Model):
     title = models.CharField(verbose_name=_("Title"), max_length=200)
-    request = models.ForeignKey(Request, related_name="shops", related_query_name="shop", on_delete=models.CASCADE)
+    request = models.OneToOneField(Request, related_name="shop", on_delete=models.CASCADE)
+    started_at = models.DateField(verbose_name=_("Shop opening date"))
+    sales = models.IntegerField(verbose_name=_("Total sales"))
 
     def __str__(self):
         return self.title
@@ -56,8 +61,8 @@ class Shop(models.Model):
 
 class Item(models.Model):
     h1 = models.CharField(verbose_name=_("h1"), max_length=500)
-    request = models.ForeignKey(Request, related_name="items", related_query_name="item", on_delete=models.CASCADE)
-    shop = models.ForeignKey(Shop, related_name="items", related_query_name="item", on_delete=models.CASCADE)
+    request = models.OneToOneField(Request, related_name="item", on_delete=models.CASCADE)
+    shop = models.ForeignKey(Shop, related_name="items", related_query_name="item", on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.h1

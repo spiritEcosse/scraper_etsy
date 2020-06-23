@@ -1,5 +1,4 @@
 import asyncio
-from urllib.parse import urlparse
 
 import aiohttp
 import async_timeout
@@ -10,6 +9,10 @@ from redis import from_url
 
 from config import celery_app
 from scraper_etsy.items.models import Request, Item, Tag, Shop
+import logging
+
+LOGGER = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 redis_connection = from_url(settings.REDIS_URL)
 
@@ -23,24 +26,16 @@ def search(self, request_id, limit=settings.LIMIT, offset=0, limit_q=settings.LI
     Request.objects.bulk_create(parser_request.children)
 
     with transaction.atomic(using=None):
-        Request.objects.rebuild()
+        Request.objects.rebuild()  # WARNING: use Node.objects.partial_rebuild(tree_id)
 
     request = Request.objects.get(id=request_id)
     parser = ItemsParser(request, limit=limit_q, offset=0)
     parser.run()
 
     Request.objects.bulk_update(parser.requests, ["status", "code"])
-    shop_requests = Request.objects.bulk_create(parser.shop_requests)
-
-    for index, shop in enumerate(parser.shops):
-        setattr(shop, "request", shop_requests[index])
-
-    shops = Shop.objects.bulk_create(parser.shops)
-
-    for index, item in enumerate(parser.items):
-        setattr(item, "shop", shops[index])
-
+    Request.objects.bulk_create(parser.shop_requests)
     items = Item.objects.bulk_create(parser.items)
+    # request_shop.delay(request_id)
 
     tags = []
     for index, tags_ in enumerate(parser.tags):
@@ -61,6 +56,23 @@ def search(self, request_id, limit=settings.LIMIT, offset=0, limit_q=settings.LI
                 "limit_q": len(parser_request.children)
             }
         )
+
+
+@celery_app.task()
+def request_shop(request_id):
+    request = Request.objects.get(id=request_id)
+    parser = ShopsParser(request)
+    parser.run()
+    Request.objects.bulk_update(parser.requests, ["status", "code"])
+    Shop.objects.bulk_create(parser.shops)
+
+    items = []
+    for index, request in enumerate(parser.requests):
+        item = request.item
+        item.shop = parser.shops[index]
+        items.append(item)
+
+    Request.objects.bulk_update(items, ["shop"])
 
 
 class Parser:
@@ -124,9 +136,9 @@ class ItemsParser(Parser):
     def __init__(self, request, limit, offset):
         super(ItemsParser, self).__init__(request, limit, offset)
         self.requests = self.request.get_children()[self.offset:self.limit]
+
         self.items = []
         self.tags = []
-        self.shops = []
         self.shop_requests = []
 
     async def post_request(self, request, response):
@@ -135,12 +147,32 @@ class ItemsParser(Parser):
         tags = soup.select(self.xpath_tags)
         if len(tags) > settings.COUNT_TAGS:
             self.items.append(Item(h1=soup.select_one(self.xpath_h1).string.strip(), request=request))
-            shop = soup.select_one(self.xpath_shop)
-            self.shops.append(Shop(title=shop.find("span").string.strip()))
             self.shop_requests.append(
                 Request(
-                    url=shop["href"], parent=request, lft=1, rght=1, tree_id=request.tree_id,
+                    url=soup.select_one(self.xpath_shop)["href"], parent=request, lft=1, rght=1, tree_id=request.tree_id,
                     level=request.level + 1
                 )
             )
             self.tags.append([Tag(name=tag_a.string.strip()) for tag_a in tags])
+
+
+class ShopsParser(Parser):
+    xpath_title = "div[class~='shop-name-and-title-container'] h1"
+    xpath_started_at = "span[class~='etsy-since']"
+    xpath_sales = 'a[href^="https://www.etsy.com/shop/"]'
+
+    def __init__(self, request, limit=0, offset=0):
+        super(ShopsParser, self).__init__(request, limit, offset)
+        self.requests = self.request.get_descendants(2)
+        self.shops = []
+
+    async def post_request(self, request, response):
+        soup = await super(ShopsParser, self).post_request(request, response)
+        self.shops.append(
+            Shop(
+                title=soup.select_one(self.xpath_title).string.strip(),
+                started_at=soup.select_one(self.xpath_started_at).string.split("since")[-1].strip(),
+                sales=soup.select_one(self.xpath_sales).string.strip(),
+                request=request
+            )
+        )
