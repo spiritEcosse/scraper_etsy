@@ -27,7 +27,7 @@ class Request(MPTTModel):
     def __str__(self):
         return "search '{}' started at {} has status {}".format(self.search, self.started_at, self.get_status_display())
 
-    def get_descendants(self, level=1):
+    def get_descendants_by_level(self, level=1):
         return self.get_descendants().filter(level__gte=self.level + level)
 
     def says_done(self):
