@@ -69,15 +69,15 @@ def request_shop(request_id):
     parser = ShopsParser(request)
     parser.run()
     Request.objects.bulk_update(parser.requests, ["status", "code"])
-    Shop.objects.bulk_create(parser.shops)
+    shops = Shop.objects.bulk_create(parser.shops)
 
     items = []
     for index, request in enumerate(parser.requests):
         item = request.parent.item
-        item.shop = parser.shops[index]
+        item.shop = shops[index]
         items.append(item)
 
-    Request.objects.bulk_update(items, ["shop"])
+    Request.objects.bulk_update(items, ["shop_id"])
 
 
 class Parser:
