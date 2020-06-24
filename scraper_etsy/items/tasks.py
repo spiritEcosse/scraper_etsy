@@ -41,7 +41,7 @@ def search(self, request_id, limit=settings.LIMIT, offset=0):
         Request.objects.partial_rebuild(request.tree_id)
 
     items = Item.objects.bulk_create(parser.items)
-    # request_shop.delay(request_id)
+    request_shop.delay(request_id)
 
     tags = []
     for index, tags_ in enumerate(parser.tags):
@@ -73,7 +73,7 @@ def request_shop(request_id):
 
     items = []
     for index, request in enumerate(parser.requests):
-        item = request.item
+        item = request.parent.item
         item.shop = parser.shops[index]
         items.append(item)
 
