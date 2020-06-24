@@ -77,7 +77,7 @@ def request_shop(request_id):
         item.shop = shops[index]
         items.append(item)
 
-    Request.objects.bulk_update(items, ["shop_id"])
+    Item.objects.bulk_update(items, ["shop_id"])
 
 
 class Parser:
