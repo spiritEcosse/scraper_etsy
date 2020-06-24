@@ -41,7 +41,7 @@ def search(self, request_id, limit=settings.LIMIT, offset=0):
         Request.objects.partial_rebuild(request.tree_id)
 
     items = Item.objects.bulk_create(parser.items)
-    request_shop.delay(request_id)
+    request_shop.delay(request_id, limit, offset)
 
     tags = []
     for index, tags_ in enumerate(parser.tags):
@@ -64,9 +64,9 @@ def search(self, request_id, limit=settings.LIMIT, offset=0):
 
 
 @celery_app.task()
-def request_shop(request_id):
+def request_shop(request_id, limit, offset):
     request = Request.objects.get(id=request_id)
-    parser = ShopsParser(request)
+    parser = ShopsParser(request, limit, offset)
     parser.run()
     Request.objects.bulk_update(parser.requests, ["status", "code"])
     shops = Shop.objects.bulk_create(parser.shops)
@@ -172,7 +172,7 @@ class ShopsParser(Parser):
 
     def __init__(self, request, limit=0, offset=0):
         super(ShopsParser, self).__init__(request, limit, offset)
-        self.requests = self.request.get_descendants_by_level(2)
+        self.requests = self.request.get_descendants_by_level(2)[self.offset:self.offset + self.limit]
         self.shops = []
 
     async def post_request(self, request, response):
