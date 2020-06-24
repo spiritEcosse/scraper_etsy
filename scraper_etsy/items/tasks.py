@@ -1,5 +1,5 @@
 import asyncio
-
+import datetime
 import aiohttp
 import async_timeout
 from bs4 import BeautifulSoup
@@ -180,7 +180,7 @@ class ShopsParser(Parser):
         self.shops.append(
             Shop(
                 title=soup.select_one(self.xpath_title).string.strip(),
-                started_at=soup.select_one(self.xpath_started_at).string.split("since")[-1].strip(),
+                started_at=datetime.date(soup.select_one(self.xpath_started_at).string.split("since")[-1].strip(), 1, 1),
                 sales=soup.select_one(self.xpath_sales).string.strip(),
                 request=request
             )
