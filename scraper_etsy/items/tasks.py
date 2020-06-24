@@ -28,7 +28,7 @@ def search(self, request_id, limit=settings.LIMIT, offset=0):
     Request.objects.bulk_create(parser_request.children)
 
     with transaction.atomic(using=None):
-        Request.objects.rebuild()  # WARNING: use Node.objects.partial_rebuild(tree_id)
+        Request.objects.partial_rebuild(request.tree_id)
 
     request = Request.objects.get(id=request_id)
     parser = ItemsParser(request, limit=len(parser_request.children), offset=0)
@@ -36,6 +36,10 @@ def search(self, request_id, limit=settings.LIMIT, offset=0):
 
     Request.objects.bulk_update(parser.requests, ["status", "code"])
     Request.objects.bulk_create(parser.shop_requests)
+
+    with transaction.atomic(using=None):
+        Request.objects.partial_rebuild(request.tree_id)
+
     items = Item.objects.bulk_create(parser.items)
     # request_shop.delay(request_id)
 
