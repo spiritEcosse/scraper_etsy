@@ -19,6 +19,8 @@ redis_connection = from_url(settings.REDIS_URL)
 
 @celery_app.task(bind=True)
 def search(self, request_id, limit=settings.LIMIT, offset=0):
+    logger.info(">>>>>>>> {}:{}".format(limit, offset))
+
     request = Request.objects.get(id=request_id)
     parser_request = RequestParser(request, limit=limit, offset=offset)
     parser_request.run()
@@ -175,11 +177,15 @@ class ShopsParser(Parser):
 
     async def post_request(self, request, response):
         soup = await super(ShopsParser, self).post_request(request, response)
+
+        started_at = soup.select_one(self.xpath_started_at).string.split("since")[-1].strip()
+        sales = soup.select_one(self.xpath_sales).string.split("Sales")[0].strip()
+
         self.shops.append(
             Shop(
                 title=soup.select_one(self.xpath_title).string.strip(),
-                started_at=datetime.date(started_at, 1, 1),
-                sales=sales,
+                started_at=datetime.date(int(started_at), 1, 1),
+                sales="".join(sales.split(",")),
                 request=request
             )
         )
