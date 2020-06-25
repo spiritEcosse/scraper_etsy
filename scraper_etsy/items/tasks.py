@@ -12,18 +12,12 @@ from redis import from_url
 
 from config import celery_app
 from scraper_etsy.items.models import Request, Item, Tag, Shop
-import logging
-
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
 
 redis_connection = from_url(settings.REDIS_URL)
 
 
 @celery_app.task(bind=True)
 def search(self, request_id, limit=settings.LIMIT, offset=0):
-    logger.info(">>>>>>>> {}:{}".format(limit, offset))
-
     request = Request.objects.get(id=request_id)
     parser_request = RequestParser(request, limit=limit, offset=offset)
     parser_request.run()
@@ -43,30 +37,31 @@ def search(self, request_id, limit=settings.LIMIT, offset=0):
     with transaction.atomic(using=None):
         Request.objects.partial_rebuild(request.tree_id)
 
-    request_shop.delay(request_id, len(parser.shop_requests), 0)
-
-    next_limit = limit - len(parser.shop_requests)
-    if next_limit:
-        self.retry(
-            countdown=settings.COUNTDOWN,
-            max_retries=settings.MAX_RETRIES,
-            kwargs={
-                "limit": next_limit,
-                "offset": limit + offset,
-            }
-        )
+    if parser.shop_requests:
+        request_shop.delay(request_id, limit, len(parser.shop_requests), offset)
+    else:
+        next_limit = limit - len(parser.shop_requests)
+        if next_limit:
+            self.retry(
+                countdown=settings.COUNTDOWN,
+                max_retries=settings.MAX_RETRIES,
+                kwargs={
+                    "limit": next_limit,
+                    "offset": limit + offset,
+                }
+            )
 
 
 @celery_app.task()
-def request_shop(request_id, limit, offset):
+def request_shop(request_id, limit, limit_q, offset):
     request = Request.objects.get(id=request_id)
-    parser = ShopsParser(request, limit, offset)
+    parser = ShopsParser(request, limit_q)
     parser.run()
     Request.objects.bulk_update(parser.requests, ["status", "code"])
     shops = Shop.objects.bulk_create(parser.shops)
 
     for shop in shops:
-        redis_connection.hset("shops", shop.title, shop.id)
+        redis_connection.hset("shops", shop.title, shop.id)  # WARNING : Does redis have data after restart ?
 
     next_limit = limit - len(parser.items)
     if next_limit:
@@ -77,7 +72,6 @@ def request_shop(request_id, limit, offset):
         )
 
     for index, item in enumerate(parser.items):
-        logger.info("item.request_id {}".format(item.request_id))
         item.shop_id = redis_connection.hget("shops", parser.shops_title[index])
 
     tags = []
@@ -107,7 +101,7 @@ class Parser:
         return BeautifulSoup(await response.text(), 'html.parser')
 
     async def get_response(self, request, session):
-        async with async_timeout.timeout(120):
+        async with async_timeout.timeout(500):
             async with session.get(request.url) as response:
                 request.code = response.status
                 request.says_done()
@@ -125,28 +119,22 @@ class RequestParser(Parser):
     def __init__(self, request, limit, offset):
         super(RequestParser, self).__init__(request, limit, offset)
         self.requests = (self.request, )
-        self.children = ()
+        self.children = []
 
     async def post_request(self, request, response):
         soup = await super(RequestParser, self).post_request(request, response)
-        logger.info("================= data-search-results \n \n {}".format(
-            "\n".join([tag_a["href"] for tag_a in soup.select(self.xpath)[self.offset:self.offset + self.limit]]))
-        )
         tags_a = soup.select(self.xpath)[self.offset:self.offset + self.limit]
-        urls = set()
 
         for tag_a in tags_a:
             url = tag_a["href"].split("?")[0]
 
             if redis_connection.sadd(request.get_root().id, url):
-                urls.add(url)
-
-        self.children = [
-            Request(
-                url=url, parent=request, lft=1, rght=1, tree_id=request.tree_id,
-                level=request.level + 1
-            ) for url in urls
-        ]
+                self.children.append(
+                    Request(
+                        url=url, parent=request, lft=1, rght=1, tree_id=request.tree_id,
+                        level=request.level + 1
+                    )
+                )
 
 
 class ItemsParser(Parser):
@@ -157,7 +145,6 @@ class ItemsParser(Parser):
     def __init__(self, request, limit, offset):
         super(ItemsParser, self).__init__(request, limit, offset)
         self.requests = self.request.get_children()[self.offset:self.limit]
-
         self.shop_requests = []
 
     async def post_request(self, request, response):
@@ -173,14 +160,12 @@ class ItemsParser(Parser):
             redis_connection.hset(
                 "tags", request.id, json.dumps([{"name": tag_a.string.strip()} for tag_a in tags])
             )
-            # self.items.append(Item(h1=soup.select_one(self.xpath_h1).string.strip(), request=request))
             self.shop_requests.append(
                 Request(
-                    url=soup.select_one(self.xpath_shop)["href"], parent=request, lft=1, rght=1, tree_id=request.tree_id,
-                    level=request.level + 1
+                    url=soup.select_one(self.xpath_shop)["href"],
+                    parent=request, lft=1, rght=1, tree_id=request.tree_id, level=request.level + 1
                 )
             )
-            # self.tags.append([Tag(name=tag_a.string.strip()) for tag_a in tags])
 
 
 class ShopsParser(Parser):
@@ -202,8 +187,6 @@ class ShopsParser(Parser):
         started_at = int(soup.select_one(self.xpath_started_at).string.split("since")[-1].strip())
         sales = soup.select_one(self.xpath_sales).find(string=re.compile("Sales")).split("Sales")[0].strip()
         sales = int("".join(sales.split(",")))
-
-        logger.info("sales {}, started_at {}".format(sales, started_at))
 
         if sales > settings.SALES and started_at > settings.STARTED_AT:
             title = soup.select_one(self.xpath_title).string.strip()
