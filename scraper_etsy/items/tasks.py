@@ -59,7 +59,7 @@ def request_shop(request_id, limit, limit_q, offset):
         redis_connection.hset("shops", shop.title, shop.id)  # WARNING : Does redis have data after restart ?
 
     next_limit = limit - len(parser.items)
-    if next_limit:
+    if next_limit and offset < settings.MAX_ON_PAGE:
         search.delay(
             request_id,
             limit=next_limit,
