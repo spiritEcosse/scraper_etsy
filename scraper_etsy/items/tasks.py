@@ -204,6 +204,7 @@ class ShopsParser(Parser):
         soup = await super(ShopsParser, self).post_request(request, response)
 
         started_at = int(soup.select_one(self.xpath_started_at).string.split("since")[-1].strip())
+        # logger.info("url ////////////////////////// '{}'".format(request.url))
         sales = soup.select_one(self.xpath_sales).find(string=re.compile("Sales")).split("Sales")[0].strip()
         sales = int("".join(sales.split(",")))
         location = soup.select_one(self.xpath_location)
@@ -213,7 +214,7 @@ class ShopsParser(Parser):
 
         logger.info("sales, started_at, fs, location, url >>>>>>>> '{}' '{}' '{}' '{}'".format(sales, started_at, location, request.url))
 
-        if all([sales > settings.SALES, started_at > settings.STARTED_AT, location in settings.COUNTRIES]):
+        if all([sales >= settings.SALES, started_at >= settings.STARTED_AT, location in settings.COUNTRIES]):
             title = soup.select_one(self.xpath_title).string.strip()
             self.shops_title.append(title)
             if not redis_connection.hget("shops", title):
