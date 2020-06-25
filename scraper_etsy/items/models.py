@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from mptt.models import MPTTModel, TreeForeignKey
+from django_countries.fields import CountryField
 
 
 class Request(MPTTModel):
@@ -54,6 +55,7 @@ class Shop(models.Model):
     request = models.OneToOneField(Request, related_name="shop", on_delete=models.CASCADE)
     started_at = models.DateField(verbose_name=_("Shop opening date"))
     sales = models.IntegerField(verbose_name=_("Total sales"))
+    location = CountryField()
 
     def __str__(self):
         return self.title

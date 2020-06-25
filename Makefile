@@ -42,6 +42,11 @@ up:
 	&& docker-compose stop \
 	&& docker-compose up
 
+up_build:
+	export COMPOSE_FILE=${COMPOSE_FILE} \
+	&& docker-compose stop \
+	&& docker-compose up --build
+
 deploy_hard:
 	export COMPOSE_FILE=${COMPOSE_FILE} \
 	&& docker-compose stop \

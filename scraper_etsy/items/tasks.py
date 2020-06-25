@@ -1,23 +1,31 @@
 import asyncio
 import datetime
 import json
+import logging
 import re
 
 import aiohttp
 import async_timeout
+import us
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.db import transaction
 from redis import from_url
+from django_countries import countries
 
 from config import celery_app
 from scraper_etsy.items.models import Request, Item, Tag, Shop
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 redis_connection = from_url(settings.REDIS_URL)
 
 
 @celery_app.task(bind=True)
 def search(self, request_id, limit=settings.LIMIT, offset=0):
+    logger.info(">>>>>>>> limit {}: offset {}".format(limit, offset))
+
     request = Request.objects.get(id=request_id)
     parser_request = RequestParser(request, limit=limit, offset=offset)
     parser_request.run()
@@ -38,8 +46,8 @@ def search(self, request_id, limit=settings.LIMIT, offset=0):
         Request.objects.partial_rebuild(request.tree_id)
 
     if parser.shop_requests:
-        request_shop.delay(request_id, limit, len(parser.shop_requests), offset)
-    else:
+        request_shop.delay(request_id, limit, len(parser.shop_requests), offset + limit)
+    elif limit + offset < settings.MAX_ON_PAGE:
         next_limit = limit - len(parser.shop_requests)
         if next_limit:
             self.retry(
@@ -68,7 +76,7 @@ def request_shop(request_id, limit, limit_q, offset):
         search.delay(
             request_id,
             limit=next_limit,
-            offset=limit + offset
+            offset=offset
         )
 
     for index, item in enumerate(parser.items):
@@ -172,6 +180,7 @@ class ShopsParser(Parser):
     xpath_title = "div[class~='shop-name-and-title-container'] h1"
     xpath_started_at = "span[class~='etsy-since']"
     xpath_sales = 'div[class~="shop-info"]'
+    xpath_location = 'span[data-key="user_location"]'
 
     def __init__(self, request, limit=0, offset=0):
         super(ShopsParser, self).__init__(request, limit, offset)
@@ -181,14 +190,30 @@ class ShopsParser(Parser):
         self.shops_title = []
         self.items = []
 
+    @staticmethod
+    def find_location(location):
+        find = us.states.lookup(location) and "US"
+
+        if not find:
+            for abbr, country in dict(countries).items():
+                if location in country:
+                    find = abbr
+        return find
+
     async def post_request(self, request, response):
         soup = await super(ShopsParser, self).post_request(request, response)
 
         started_at = int(soup.select_one(self.xpath_started_at).string.split("since")[-1].strip())
         sales = soup.select_one(self.xpath_sales).find(string=re.compile("Sales")).split("Sales")[0].strip()
         sales = int("".join(sales.split(",")))
+        location = soup.select_one(self.xpath_location)
 
-        if sales > settings.SALES and started_at > settings.STARTED_AT:
+        if location:
+            location = self.find_location(location.string.split(",")[-1].strip())
+
+        logger.info("sales, started_at, fs, location, url >>>>>>>> '{}' '{}' '{}' '{}'".format(sales, started_at, location, request.url))
+
+        if all([sales > settings.SALES, started_at > settings.STARTED_AT, location in settings.COUNTRIES]):
             title = soup.select_one(self.xpath_title).string.strip()
             self.shops_title.append(title)
             if not redis_connection.hget("shops", title):
@@ -197,7 +222,8 @@ class ShopsParser(Parser):
                         title=title,
                         started_at=datetime.date(started_at, 1, 1),
                         sales=sales,
-                        request=request
+                        request=request,
+                        location=location
                     )
                 )
             self.items.append(

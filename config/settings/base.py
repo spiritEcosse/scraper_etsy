@@ -73,6 +73,7 @@ THIRD_PARTY_APPS = [
     "rest_framework.authtoken",
     "corsheaders",
     "mptt",
+    "django_countries",
 ]
 
 LOCAL_APPS = [
