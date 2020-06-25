@@ -1,7 +1,6 @@
 import asyncio
 import datetime
 import json
-import logging
 import re
 
 import aiohttp
@@ -10,22 +9,17 @@ import us
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.db import transaction
-from redis import from_url
 from django_countries import countries
+from redis import from_url
 
 from config import celery_app
 from scraper_etsy.items.models import Request, Item, Tag, Shop
-
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
 
 redis_connection = from_url(settings.REDIS_URL)
 
 
 @celery_app.task(bind=True)
 def search(self, request_id, limit=settings.LIMIT, offset=0):
-    logger.info(">>>>>>>> limit {}: offset {}".format(limit, offset))
-
     request = Request.objects.get(id=request_id)
     parser_request = RequestParser(request, limit=limit, offset=offset)
     parser_request.run()
@@ -204,15 +198,15 @@ class ShopsParser(Parser):
         soup = await super(ShopsParser, self).post_request(request, response)
 
         started_at = int(soup.select_one(self.xpath_started_at).string.split("since")[-1].strip())
-        # logger.info("url ////////////////////////// '{}'".format(request.url))
-        sales = soup.select_one(self.xpath_sales).find(string=re.compile("Sales")).split("Sales")[0].strip()
-        sales = int("".join(sales.split(",")))
+        sales = soup.select_one(self.xpath_sales).find(string=re.compile("Sales")) or 0
+        if sales:
+            sales = sales.split("Sales")[0].strip()
+            sales = int("".join(sales.split(",")))
+
         location = soup.select_one(self.xpath_location)
 
         if location:
             location = self.find_location(location.string.split(",")[-1].strip())
-
-        logger.info("sales, started_at, fs, location, url >>>>>>>> '{}' '{}' '{}' '{}'".format(sales, started_at, location, request.url))
 
         if all([sales >= settings.SALES, started_at >= settings.STARTED_AT, location in settings.COUNTRIES]):
             title = soup.select_one(self.xpath_title).string.strip()
