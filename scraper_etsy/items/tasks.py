@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import json
+import re
 
 import aiohttp
 import async_timeout
@@ -68,12 +69,12 @@ def request_shop(request_id, limit, offset):
         redis_connection.hset("shops", shop.title, shop.id)
 
     next_limit = limit - len(parser.items)
-    # if next_limit:
-    #     search.delay(
-    #         request_id,
-    #         limit=next_limit,
-    #         offset=limit + offset
-    #     )
+    if next_limit:
+        search.delay(
+            request_id,
+            limit=next_limit,
+            offset=limit + offset
+        )
 
     for index, item in enumerate(parser.items):
         logger.info("item.request_id {}".format(item.request_id))
@@ -185,7 +186,7 @@ class ItemsParser(Parser):
 class ShopsParser(Parser):
     xpath_title = "div[class~='shop-name-and-title-container'] h1"
     xpath_started_at = "span[class~='etsy-since']"
-    xpath_sales = 'a[href^="https://www.etsy.com/shop/"]'
+    xpath_sales = 'div[class~="shop-info"]'
 
     def __init__(self, request, limit=0, offset=0):
         super(ShopsParser, self).__init__(request, limit, offset)
@@ -199,7 +200,7 @@ class ShopsParser(Parser):
         soup = await super(ShopsParser, self).post_request(request, response)
 
         started_at = int(soup.select_one(self.xpath_started_at).string.split("since")[-1].strip())
-        sales = soup.select_one(self.xpath_sales).string.split("Sales")[0].strip()
+        sales = soup.select_one(self.xpath_sales).find(string=re.compile("Sales")).split("Sales")[0].strip()
         sales = int("".join(sales.split(",")))
 
         logger.info("sales {}, started_at {}".format(sales, started_at))
