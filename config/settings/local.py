@@ -67,7 +67,9 @@ CELERY_TASK_EAGER_PROPAGATES = True
 # Your stuff...
 # ------------------------------------------------------------------------------
 
-COUNTDOWN = 2
+COUNTDOWN = 5
 MAX_RETRIES = 100
 LIMIT = 5
 COUNT_TAGS = 10
+SALES = 1000
+STARTED_AT = 2016

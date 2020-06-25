@@ -1,5 +1,7 @@
 import asyncio
 import datetime
+import json
+
 import aiohttp
 import async_timeout
 from bs4 import BeautifulSoup
@@ -40,18 +42,9 @@ def search(self, request_id, limit=settings.LIMIT, offset=0):
     with transaction.atomic(using=None):
         Request.objects.partial_rebuild(request.tree_id)
 
-    items = Item.objects.bulk_create(parser.items)
-    request_shop.delay(request_id, limit, offset)
+    request_shop.delay(request_id, len(parser.shop_requests), 0)
 
-    tags = []
-    for index, tags_ in enumerate(parser.tags):
-        for tag in tags_:
-            setattr(tag, "item", items[index])
-            tags.append(tag)
-
-    Tag.objects.bulk_create(tags)
-
-    next_limit = limit - len(parser.items)
+    next_limit = limit - len(parser.shop_requests)
     if next_limit:
         self.retry(
             countdown=settings.COUNTDOWN,
@@ -71,13 +64,31 @@ def request_shop(request_id, limit, offset):
     Request.objects.bulk_update(parser.requests, ["status", "code"])
     shops = Shop.objects.bulk_create(parser.shops)
 
-    items = []
-    for index, request in enumerate(parser.requests):
-        item = request.parent.item
-        item.shop = shops[index]
-        items.append(item)
+    for shop in shops:
+        redis_connection.hset("shops", shop.title, shop.id)
 
-    Item.objects.bulk_update(items, ["shop_id"])
+    next_limit = limit - len(parser.items)
+    # if next_limit:
+    #     search.delay(
+    #         request_id,
+    #         limit=next_limit,
+    #         offset=limit + offset
+    #     )
+
+    for index, item in enumerate(parser.items):
+        logger.info("item.request_id {}".format(item.request_id))
+        item.shop_id = redis_connection.hget("shops", parser.shops_title[index])
+
+    tags = []
+    for item in Item.objects.bulk_create(parser.items):
+        tags_ = json.loads(redis_connection.hget("tags", item.request.id))
+
+        for tag in tags_:
+            tag = Tag(**tag)
+            tag.item = item
+            tags.append(tag)
+
+    Tag.objects.bulk_create(tags)
 
 
 class Parser:
@@ -146,8 +157,6 @@ class ItemsParser(Parser):
         super(ItemsParser, self).__init__(request, limit, offset)
         self.requests = self.request.get_children()[self.offset:self.limit]
 
-        self.items = []
-        self.tags = []
         self.shop_requests = []
 
     async def post_request(self, request, response):
@@ -155,14 +164,22 @@ class ItemsParser(Parser):
 
         tags = soup.select(self.xpath_tags)
         if len(tags) > settings.COUNT_TAGS:
-            self.items.append(Item(h1=soup.select_one(self.xpath_h1).string.strip(), request=request))
+            data_item = {
+                "h1": soup.select_one(self.xpath_h1).string.strip(),
+                "request_id": request.id
+            }
+            redis_connection.hset("items", request.id, json.dumps(data_item))
+            redis_connection.hset(
+                "tags", request.id, json.dumps([{"name": tag_a.string.strip()} for tag_a in tags])
+            )
+            # self.items.append(Item(h1=soup.select_one(self.xpath_h1).string.strip(), request=request))
             self.shop_requests.append(
                 Request(
                     url=soup.select_one(self.xpath_shop)["href"], parent=request, lft=1, rght=1, tree_id=request.tree_id,
                     level=request.level + 1
                 )
             )
-            self.tags.append([Tag(name=tag_a.string.strip()) for tag_a in tags])
+            # self.tags.append([Tag(name=tag_a.string.strip()) for tag_a in tags])
 
 
 class ShopsParser(Parser):
@@ -172,20 +189,33 @@ class ShopsParser(Parser):
 
     def __init__(self, request, limit=0, offset=0):
         super(ShopsParser, self).__init__(request, limit, offset)
-        self.requests = self.request.get_descendants_by_level(2)[self.offset:self.offset + self.limit]
+        self.requests = self.request.get_descendants_by_level(2)\
+                            .select_related("parent")[self.offset:self.offset + self.limit]
         self.shops = []
+        self.shops_title = []
+        self.items = []
 
     async def post_request(self, request, response):
         soup = await super(ShopsParser, self).post_request(request, response)
 
-        started_at = soup.select_one(self.xpath_started_at).string.split("since")[-1].strip()
+        started_at = int(soup.select_one(self.xpath_started_at).string.split("since")[-1].strip())
         sales = soup.select_one(self.xpath_sales).string.split("Sales")[0].strip()
+        sales = int("".join(sales.split(",")))
 
-        self.shops.append(
-            Shop(
-                title=soup.select_one(self.xpath_title).string.strip(),
-                started_at=datetime.date(int(started_at), 1, 1),
-                sales="".join(sales.split(",")),
-                request=request
+        logger.info("sales {}, started_at {}".format(sales, started_at))
+
+        if sales > settings.SALES and started_at > settings.STARTED_AT:
+            title = soup.select_one(self.xpath_title).string.strip()
+            self.shops_title.append(title)
+            if not redis_connection.hget("shops", title):
+                self.shops.append(
+                    Shop(
+                        title=title,
+                        started_at=datetime.date(started_at, 1, 1),
+                        sales=sales,
+                        request=request
+                    )
+                )
+            self.items.append(
+                Item(**json.loads(redis_connection.hget("items", request.parent.id)))
             )
-        )

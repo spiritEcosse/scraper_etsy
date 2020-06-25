@@ -50,7 +50,7 @@ class Request(MPTTModel):
 
 
 class Shop(models.Model):
-    title = models.CharField(verbose_name=_("Title"), max_length=200)
+    title = models.CharField(verbose_name=_("Title"), max_length=200, unique=True)
     request = models.OneToOneField(Request, related_name="shop", on_delete=models.CASCADE)
     started_at = models.DateField(verbose_name=_("Shop opening date"))
     sales = models.IntegerField(verbose_name=_("Total sales"))
@@ -62,7 +62,7 @@ class Shop(models.Model):
 class Item(models.Model):
     h1 = models.CharField(verbose_name=_("h1"), max_length=500)
     request = models.OneToOneField(Request, related_name="item", on_delete=models.CASCADE)
-    shop = models.ForeignKey(Shop, related_name="items", related_query_name="item", on_delete=models.CASCADE, null=True)
+    shop = models.ForeignKey(Shop, related_name="items", related_query_name="item", on_delete=models.CASCADE)
 
     def __str__(self):
         return self.h1
