@@ -56,7 +56,8 @@ def request_shop(request_id, limit, limit_q, offset):
     shops = Shop.objects.bulk_create(parser.shops, ignore_conflicts=True)
 
     for shop in shops:
-        redis_connection.hset("shops", shop.title, shop.id)  # WARNING : Does redis have data after restart ?
+        if shop.title and shop.id:
+            redis_connection.hset("shops", shop.title, shop.id)  # WARNING : Does redis have data after restart ?
 
     next_limit = limit - len(parser.items)
     if next_limit and offset < settings.MAX_ON_PAGE:
