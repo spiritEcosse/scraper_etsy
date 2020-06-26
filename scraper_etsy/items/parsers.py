@@ -139,7 +139,8 @@ class ShopsParser(Parser):
         if all([sales >= settings.SALES, started_at >= settings.STARTED_AT, location in settings.COUNTRIES]):
             title = soup.select_one(self.xpath_title).string.strip()
             self.shops_title.append(title)
-            if not redis_connection.hget("shops", title):
+
+            if redis_connection.sadd("shops", title):
                 self.shops.append(
                     Shop(
                         title=title,
