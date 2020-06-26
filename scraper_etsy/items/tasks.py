@@ -53,7 +53,7 @@ def request_shop(request_id, limit, limit_q, offset):
     parser = ShopsParser(request, limit_q)
     parser.run()
     Request.objects.bulk_update(parser.requests, ["status", "code"])
-    shops = Shop.objects.bulk_create(parser.shops)
+    shops = Shop.objects.bulk_create(parser.shops, ignore_conflicts=True)
 
     for shop in shops:
         redis_connection.hset("shops", shop.title, shop.id)  # WARNING : Does redis have data after restart ?
