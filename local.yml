@@ -26,16 +26,16 @@ services:
 
   node:
     build:
-      context: .
-      dockerfile: ./compose/local/node/Dockerfile
+      context: ./frontend
+      dockerfile: ../compose/local/node/Dockerfile
     image: scraper_etsy_local_node
     depends_on:
       - django
     volumes:
-      - .:/app
+      - ./frontend:/app
       # http://jdlm.info/articles/2016/03/06/lessons-building-node-app-docker.html
       - /app/node_modules
-    command: npm run dev
+    command: npm start
     ports:
       - "3000:3000"
       # Expose browsersync UI: https://www.browsersync.io/docs/options/#option-ui

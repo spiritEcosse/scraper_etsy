@@ -299,6 +299,7 @@ SOCIALACCOUNT_ADAPTER = "scraper_etsy.users.adapters.SocialAccountAdapter"
 # django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ),
@@ -316,3 +317,7 @@ CORS_ALLOW_CREDENTIALS = True
 os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 
 REDIS_URL = env("REDIS_URL")
+
+JWT_AUTH = {
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'simple_rest.utils.custom_jwt_response_handler'
+}
