@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import NavComponent from './Components/NavComponent';
+import 'fontsource-roboto';
 
 const base_url = window.SERVER_ADDRESS
 class App extends Component {
@@ -88,11 +89,11 @@ class App extends Component {
 				displayed_form = {displayed_form}
 				display_form = {this.display_form}
 				 />
-				<h3>{
-					this.state.logged_in
-					? `Hello ${this.state.username}`
-					: 'Please log in'
-				}</h3>
+				{/*<h3>{*/}
+				{/*	this.state.logged_in*/}
+				{/*	? `Hello ${this.state.username}`*/}
+				{/*	: 'Please log in'*/}
+				{/*}</h3>*/}
 			</div>
 		)
 	}
