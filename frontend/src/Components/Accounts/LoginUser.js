@@ -95,7 +95,7 @@ class LoginUser extends Component {
                 }
             )
             .catch(error => {
-                console.log(error)
+                this.setState({ alert: "Server has error." });
             })
         this.setState({
             displayed_form : ''
@@ -119,7 +119,7 @@ class LoginUser extends Component {
         return (
             <Container component="main" maxWidth="xs">
                 <CssBaseline />
-                    { alert }
+                { this.state.alert ? alert : null }
                 <div className={classes.paper}>
                     <Avatar className={classes.avatar}>
                         <LockOutlinedIcon/>
@@ -141,10 +141,10 @@ class LoginUser extends Component {
                             label="Username"
                             name="username"
                             autoComplete="username"
-                            value={this.props.username}
-                            helperText={this.state.errors.username ? this.state.errors.username : ""}
-                            error={!!this.state.errors.username}
-                            onChange={this.handleUsernameChange}
+                            value={ this.props.username }
+                            helperText={ this.state.errors.username ? this.state.errors.username : null }
+                            error={ !!this.state.errors.username }
+                            onChange={ this.handleUsernameChange }
                             autoFocus
                         />
                         <TextField
@@ -158,8 +158,8 @@ class LoginUser extends Component {
                             label="Password"
                             type="password"
                             id="password"
-                            helperText={this.state.errors.password ? this.state.errors.password : ""}
-                            error={!!this.state.errors.password}
+                            helperText={ this.state.errors.password ? this.state.errors.password : null }
+                            error={ !!this.state.errors.password }
                             autoComplete="current-password"
                         />
                         <FormControlLabel
