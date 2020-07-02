@@ -40,7 +40,14 @@ stop_rm_up:
 up:
 	export COMPOSE_FILE=${COMPOSE_FILE} \
 	&& docker-compose stop \
+	&& docker-compose rm -f node \
 	&& docker-compose up
+
+up_node:
+	export COMPOSE_FILE=${COMPOSE_FILE} \
+	&& docker-compose stop node \
+	&& docker-compose rm -f node \
+	&& docker-compose up node
 
 up_build:
 	export COMPOSE_FILE=${COMPOSE_FILE} \

@@ -1,13 +1,12 @@
 import React, { Component } from 'react'
 import LoginUser from './Accounts/LoginUser';
+import { Alert } from '@material-ui/lab';
+
 
 class NavComponent extends Component {
+    // const [open, setOpen] = React.useState(true);
     render(){
-        let form;
-        form = <LoginUser
-                handleLoginChange={this.props.handleLoginChange}
-                handleLogin={this.props.handleLogin}
-                username={this.props.username}/>;
+        let form = <LoginUser/>;
         const logged_in_nav = (
             <a onClick = {() => this.props.display_form('login')}>Login</a>
         );
@@ -19,7 +18,7 @@ class NavComponent extends Component {
         return (
             <div>
                 {this.props.logged_in? logged_out_nav : ""}
-                {form}
+                { form }
             </div>
         );
     }
