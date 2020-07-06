@@ -51,6 +51,7 @@ up_node:
 
 up_build:
 	export COMPOSE_FILE=${COMPOSE_FILE} \
+	&& docker-compose rm -f node \
 	&& docker-compose stop \
 	&& docker-compose up --build
 
