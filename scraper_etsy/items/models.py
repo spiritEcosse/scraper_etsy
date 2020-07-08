@@ -49,6 +49,11 @@ class Request(MPTTModel):
     def is_server_error(self):   # 5xx
         return status.is_server_error(self.code)
 
+    def tags(self):
+        return Tag.objects.filter(
+            item__request__parent=self
+        ).distinct("name")
+
 
 class Shop(models.Model):
     title = models.CharField(verbose_name=_("Title"), max_length=200, unique=True)
@@ -63,7 +68,7 @@ class Shop(models.Model):
 
 class Item(models.Model):
     h1 = models.CharField(verbose_name=_("h1"), max_length=500)
-    request = models.OneToOneField(Request, related_name="item", on_delete=models.CASCADE)
+    request = models.OneToOneField(Request, related_name="item", related_query_name="item", on_delete=models.CASCADE)
     shop = models.ForeignKey(Shop, related_name="items", related_query_name="item", on_delete=models.CASCADE)
 
     def __str__(self):
