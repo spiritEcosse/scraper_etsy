@@ -1,8 +1,9 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import status
-from mptt.models import MPTTModel, TreeForeignKey
 from django_countries.fields import CountryField
+from mptt.models import MPTTModel, TreeForeignKey
+from rest_framework import status
+from django.conf import settings
 
 
 class Request(MPTTModel):
@@ -27,6 +28,9 @@ class Request(MPTTModel):
 
     def __str__(self):
         return "search '{}' started at {} has status {}".format(self.search, self.started_at, self.get_status_display())
+
+    def show_started_at(self):
+        return self.started_at.strftime(settings.DATETIME_FORMAT[0])
 
     def get_descendants_by_level(self, level=1):
         return self.get_descendants().filter(level__gte=self.level + level)
@@ -78,6 +82,9 @@ class Item(models.Model):
 class Tag(models.Model):
     name = models.CharField(verbose_name=_("Name"), max_length=500)
     item = models.ForeignKey(Item, related_name="tags", related_query_name="tag", on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ("name", )
 
     def __str__(self):
         return self.name

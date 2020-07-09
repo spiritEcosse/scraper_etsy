@@ -2,7 +2,7 @@ from django.db.models import Prefetch
 from rest_framework import viewsets
 from rest_framework.response import Response
 
-from scraper_etsy.items.models import Request
+from scraper_etsy.items.models import Request, Tag
 from scraper_etsy.items.serializer import RequestSerializer, RequestsSerializer
 from scraper_etsy.items.tasks import search
 
@@ -15,9 +15,12 @@ class RequestViewSet(viewsets.ModelViewSet):
             "children", queryset=Request.objects.exclude(item__isnull=True),
             to_attr="children_have_item"
         ),
-        "children_have_item__item__tags",
-        "children_have_item__item__shop__request",
-    )[:10]
+        Prefetch(
+            "children_have_item__item__tags", queryset=Tag.objects.distinct("name"),
+            to_attr="unique_tags"
+        ),
+        "children_have_item__item__shop__request"
+    )[:3]
     url = "https://www.etsy.com/search?q={}"
 
     def perform_create(self, serializer):
@@ -30,20 +33,20 @@ class RequestViewSet(viewsets.ModelViewSet):
         data = []
 
         for request in queryset:
-            request_ = {"search": request.search, 'tags': []}
+            request_ = {"search": request.search, "started_at": request.show_started_at(), 'items': []}
+            data.append(request_)
 
             for child in request.children_have_item:
                 item = child.item
+                item_ = {"url": item.request.url, "shop_url": item.shop.request.url, 'tags': []}
+                request_['items'].append(item_)
 
-                for tag in item.tags.all():
-                    request_['tags'].append(
+                for tag in item.unique_tags:
+                    item_['tags'].append(
                         {
+                            "id": tag.id,
                             "name": tag.name,
-                            "item_h1": item.h1,
-                            "item_url": item.request.url,
-                            "shop_url": item.shop.request.url
                         }
                     )
 
-            data.append(request_)
         return Response(data)

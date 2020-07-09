@@ -321,3 +321,7 @@ REDIS_URL = env("REDIS_URL")
 JWT_AUTH = {
     'JWT_RESPONSE_PAYLOAD_HANDLER': 'simple_rest.utils.custom_jwt_response_handler'
 }
+
+DATETIME_FORMAT = [
+    '%Y-%m-%d %H:%M:%S'
+]
