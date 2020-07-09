@@ -114,6 +114,7 @@ class ShopsParser(Parser):
 
     @staticmethod
     def find_location(location):
+        location = "".join(location.split("."))
         find = us.states.lookup(location) and "US"
 
         if not find:
