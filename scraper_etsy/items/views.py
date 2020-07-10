@@ -33,12 +33,22 @@ class RequestViewSet(viewsets.ModelViewSet):
         data = []
 
         for request in queryset:
-            request_ = {"search": request.search, "started_at": request.show_started_at(), 'items': []}
+            request_ = {
+                "id": request.id,
+                "search": request.search,
+                "started_at": request.show_started_at(),
+                'items': []
+            }
             data.append(request_)
 
             for child in request.children_have_item:
                 item = child.item
-                item_ = {"url": item.request.url, "shop_url": item.shop.request.url, 'tags': []}
+                item_ = {
+                    "id": item.id,
+                    "url": item.request.url,
+                    "shop_url": item.shop.request.url,
+                    'tags': []
+                }
                 request_['items'].append(item_)
 
                 for tag in item.unique_tags:

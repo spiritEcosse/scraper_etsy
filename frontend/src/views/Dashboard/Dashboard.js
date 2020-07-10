@@ -28,7 +28,7 @@ import CustomTabs from "components/CustomTabs/CustomTabs.js";
 import {base_url, bugs, server, website} from "variables/general.js";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 
-const access = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNTk0MzA1NzkxLCJqdGkiOiJkNmM1NTRhNzVhZTg0ZWE4ODcxY2Q1ZDUyMzBkODQ5ZSIsInVzZXJfaWQiOjF9.1TeyTyH-Eg38eDusHYEEmVYQVgyeFKpu4c04wkVKJik"
+const access = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjQ2ODY5ODAyLCJqdGkiOiI3MDQxZjJkZGE5OTg0ZmFkYjZkN2VjNmNhMTg3NzM3MiIsInVzZXJfaWQiOjF9.wOE580zk4SF32N9-EEzB1coOIQajPQl9TyYWeETJFek"
 
 class Dashboard extends Component {
   constructor(props) {
@@ -73,9 +73,9 @@ class Dashboard extends Component {
         <div>
           <GridContainer>
             {
-              requests.map((request, key) => {
+              requests.map((request) => {
                 return (
-                    <GridItem xs={12} sm={12} md={6}>
+                    <GridItem xs={12} sm={12} md={6} key={request.id.toString()}>
                       <Card>
                         <CardHeader color="primary">
                           <h4 className={classes.cardTitleWhite}>Search: { request.search }</h4>
@@ -83,15 +83,12 @@ class Dashboard extends Component {
                             started at: { request.started_at }
                           </p>
                         </CardHeader>
-                        <CardBody>
-                          <div className={classes.typo} key={key}>
-                            <div className={classes.note}></div>
-                            <Item
-                                tableHeaderColor="warning"
-                                tableHead={["Tags", "Item", "Shop"]}
-                                tableData={ request.items }
-                            />
-                          </div>
+                        <CardBody >
+                          <Item
+                              tableHeaderColor="warning"
+                              tableHead={["Tags", "Item", "Shop"]}
+                              tableData={ request.items }
+                          />
                         </CardBody>
                       </Card>
                     </GridItem>

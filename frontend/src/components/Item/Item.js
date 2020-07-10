@@ -7,25 +7,17 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import Collapse from '@material-ui/core/Collapse';
-import InboxIcon from '@material-ui/icons/MoveToInbox';
-import ExpandLess from '@material-ui/icons/ExpandLess';
-import ExpandMore from '@material-ui/icons/ExpandMore';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import TreeView from '@material-ui/lab/TreeView';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import TreeItem from '@material-ui/lab/TreeItem';
 import styles from "assets/jss/material-dashboard-react/components/tableStyle.js";
 
 const useStyles = makeStyles(styles);
 
 export default function ItemTable(props) {
   const classes = useStyles();
-  const [open, setOpen] = React.useState(false);
 
-  const handleClick = () => {
-    setOpen(!open);
-  };
   const { tableHead, tableData, tableHeaderColor } = props;
   return (
       <div className={classes.tableResponsive}>
@@ -49,34 +41,26 @@ export default function ItemTable(props) {
           <TableBody>
             {tableData.map((item) => {
               return (
-                  <TableRow key={item.id} className={classes.tableBodyRow}>
-                    <TableCell className={classes.tableCell} key={item.id + 1}>
-                      <List
-                          component="nav"
-                          aria-labelledby="nested-list-subheader"
+                  <TableRow key={item.id.toString()} className={classes.tableBodyRow}>
+                    <TableCell className={classes.tableCell}>
+                      <TreeView
                           className={classes.root}
+                          defaultCollapseIcon={<ExpandMoreIcon />}
+                          defaultExpandIcon={<ChevronRightIcon />}
                       >
-                        <ListItem button onClick={handleClick}>
-                          <ListItemIcon>
-                            <InboxIcon />
-                          </ListItemIcon>
-                          <ListItemText primary="Tags" />
-                          {open ? <ExpandLess /> : <ExpandMore />}
-                        </ListItem>
-                        <Collapse in={open} timeout="auto" unmountOnExit>
-                          <List component="div" disablePadding>
-                            {item.tags.map((tag) => {
-                              return (
-                              <ListItem button className={classes.nested}>
-                                <ListItemText primary={tag.name} />
-                              </ListItem>
-                              );
-                            })}
-                          </List>
-                        </Collapse>
-                      </List>
+                        <TreeItem nodeId={item.id.toString()} label="Tags">
+                          {item.tags.map((tag) => {
+                            return (
+                                <TreeItem
+                                    nodeId={tag.id.toString()}
+                                    key={tag.id.toString()}
+                                    label={tag.name} />
+                            );
+                          })}
+                        </TreeItem>
+                      </TreeView>
                     </TableCell>
-                    <TableCell className={classes.tableCell} key={item.id + 2}>
+                    <TableCell className={classes.tableCell}>
                       <ReactTinyLink
                           cardSize="small"
                           showGraphic={true}
@@ -85,7 +69,7 @@ export default function ItemTable(props) {
                           url={ item.url }
                       />
                     </TableCell>
-                    <TableCell className={classes.tableCell} key={item.id + 3}>
+                    <TableCell className={classes.tableCell}>
                       <ReactTinyLink
                           cardSize="small"
                           showGraphic={true}
@@ -118,5 +102,4 @@ ItemTable.propTypes = {
     "gray"
   ]),
   tableHead: PropTypes.arrayOf(PropTypes.string),
-  tableData: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string))
 };

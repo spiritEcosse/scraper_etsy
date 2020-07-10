@@ -186,6 +186,9 @@ ipython:
 bash:
 	docker-compose -f ${COMPOSE_FILE} run --rm django sh
 
+node_npm_install:
+	docker-compose -f ${COMPOSE_FILE} run --rm node npm i --save $(PKG)
+
 bash_test:
 	docker-compose -f test.yml -p test run --rm django sh
 
