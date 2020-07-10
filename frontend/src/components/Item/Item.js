@@ -184,7 +184,7 @@ export default function ItemTable(props) {
             </Table>
           </TableContainer>
           <TablePagination
-              rowsPerPageOptions={[5, 10, 25]}
+              rowsPerPageOptions={[4, 8, 16]}
               component="div"
               count={tableData.length}
               rowsPerPage={rowsPerPage}
