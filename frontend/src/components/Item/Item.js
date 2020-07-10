@@ -61,7 +61,7 @@ const EnhancedTableToolbar = (props) => {
             </Typography>
         ) : (
             <Typography className={classes.title} variant="h6" id="tableTitle" component="div">
-              Nutrition
+              Items
             </Typography>
         )}
 
@@ -71,13 +71,7 @@ const EnhancedTableToolbar = (props) => {
                 <DeleteIcon />
               </IconButton>
             </Tooltip>
-        ) : (
-            <Tooltip title="Filter list">
-              <IconButton aria-label="filter list">
-                <FilterListIcon />
-              </IconButton>
-            </Tooltip>
-        )}
+        ) : null }
       </Toolbar>
   );
 };
@@ -112,7 +106,7 @@ export default function ItemTable(props) {
   const { tableHead, tableData } = props;
 
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rowsPerPage, setRowsPerPage] = React.useState(4);
   const [dense] = React.useState(false);
 
   const handleChangePage = (event, newPage) => {
