@@ -28,6 +28,7 @@ import SearchForm from "components/Form/Search.js";
 import CustomTabs from "components/CustomTabs/CustomTabs.js";
 import {base_url, bugs, server, website, access } from "variables/general.js";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
+import SnackbarContent from "../../components/Snackbar/SnackbarContent";
 
 class Dashboard extends Component {
   constructor(props) {
@@ -84,11 +85,21 @@ class Dashboard extends Component {
                           </p>
                         </CardHeader>
                         <CardBody >
-                          <Item
-                              tableHeaderColor="warning"
-                              tableHead={["Tags", "Item", "Shop"]}
-                              tableData={ request.items }
-                          />
+                          { request.items.length ?
+                              <Item
+                                  tableHeaderColor="warning"
+                                  tableHead={["Tags", "Item", "Shop"]}
+                                  tableData={ request.items }
+                              />
+                              :
+                              <SnackbarContent
+                                  message={
+                                    "Don't have any items."
+                                  }
+                                  close
+                                  color="info"
+                              />
+                          }
                         </CardBody>
                       </Card>
                     </GridItem>
