@@ -93,6 +93,7 @@ class SearchForm extends Component {
             <SnackbarContent
                 message={this.state.alert.message ? this.state.alert.message : ""}
                 color={this.state.alert.type}
+                close
             />
         );
         return (

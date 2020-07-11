@@ -96,7 +96,6 @@ class Dashboard extends Component {
                                   message={
                                     "Don't have any items."
                                   }
-                                  close
                                   color="info"
                               />
                           }
