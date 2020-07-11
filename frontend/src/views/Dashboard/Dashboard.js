@@ -24,11 +24,10 @@ import BugReport from "@material-ui/icons/BugReport";
 import Code from "@material-ui/icons/Code";
 import Cloud from "@material-ui/icons/Cloud";
 import Tasks from "components/Tasks/Tasks.js";
+import SearchForm from "components/Form/Search.js";
 import CustomTabs from "components/CustomTabs/CustomTabs.js";
-import {base_url, bugs, server, website} from "variables/general.js";
+import {base_url, bugs, server, website, access } from "variables/general.js";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
-
-const access = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjQ2ODY5ODAyLCJqdGkiOiI3MDQxZjJkZGE5OTg0ZmFkYjZkN2VjNmNhMTg3NzM3MiIsInVzZXJfaWQiOjF9.wOE580zk4SF32N9-EEzB1coOIQajPQl9TyYWeETJFek"
 
 class Dashboard extends Component {
   constructor(props) {
@@ -71,6 +70,7 @@ class Dashboard extends Component {
 
     return (
         <div>
+          <SearchForm />
           <GridContainer>
             {
               requests.map((request) => {
