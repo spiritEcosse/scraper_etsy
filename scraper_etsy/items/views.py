@@ -1,15 +1,16 @@
 from django.db.models import Prefetch
+from django_countries import countries
 from rest_framework import viewsets
 from rest_framework.response import Response
 
 from scraper_etsy.items.models import Request, Tag
-from scraper_etsy.items.serializer import RequestSerializer, RequestsSerializer
+from scraper_etsy.items import serializer as items_serializers
 from scraper_etsy.items.tasks import search
+from django.conf import settings
 
 
 class RequestViewSet(viewsets.ModelViewSet):
-    serializer_class = RequestSerializer
-    list_serializer_class = RequestsSerializer
+    serializer_class = items_serializers.RequestSerializer
     queryset = Request.objects.filter(level=0).prefetch_related(
         Prefetch(
             "children", queryset=Request.objects.exclude(item__isnull=True),
@@ -59,4 +60,21 @@ class RequestViewSet(viewsets.ModelViewSet):
                         }
                     )
 
+        return Response(data)
+
+
+class FilterView(viewsets.views.APIView):
+    @staticmethod
+    def get(request):
+        data = {
+            "filter": {
+                'countries':
+                    [country.name for country in countries if country.code in settings.COUNTRIES],
+                'limit': settings.LIMIT,
+                'count_tags': settings.COUNT_TAGS,
+                'sales': settings.SALES,
+                'year_store_base': settings.YEAR_STORE_BASE,
+            },
+            'countries': items_serializers.CountriesSerializer(countries, many=True).data,
+        }
         return Response(data)
