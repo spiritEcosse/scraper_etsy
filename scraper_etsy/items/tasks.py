@@ -12,8 +12,12 @@ redis_connection = from_url(settings.REDIS_URL)
 
 
 @celery_app.task(bind=True)
-def search(self, request_id, limit=settings.LIMIT, offset=0):
+def search(self, request_id, limit=None, offset=0):
     request = Request.objects.get(id=request_id)
+
+    if limit is None:
+        limit = request.filter.limit
+
     parser_request = RequestParser(request, limit=limit, offset=offset)
     parser_request.run()
     Request.objects.bulk_update(parser_request.requests, ["status", "code"])
