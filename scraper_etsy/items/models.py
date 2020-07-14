@@ -104,7 +104,7 @@ class Request(MPTTModel):
 class Shop(models.Model):
     title = models.CharField(verbose_name=_("Title"), max_length=200, unique=True)
     request = models.OneToOneField(Request, related_name="shop", on_delete=models.CASCADE)
-    started_at = models.DateField(verbose_name=_("Shop opening date"))
+    year_store_base = models.DateField(verbose_name=_("Shop opening date"))
     sales = models.IntegerField(verbose_name=_("Total sales"))
     location = CountryField()
 

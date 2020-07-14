@@ -100,14 +100,14 @@ class ItemsParser(Parser):
 
 class ShopsParser(Parser):
     xpath_title = "div[class~='shop-name-and-title-container'] h1"
-    xpath_started_at = "span[class~='etsy-since']"
+    xpath_year_store_base = "span[class~='etsy-since']"
     xpath_sales = 'div[class~="shop-info"]'
     xpath_location = 'span[data-key="user_location"]'
 
     def __init__(self, request, limit=0, offset=0):
         super(ShopsParser, self).__init__(request, limit, offset)
         self.requests = self.request.get_descendants_by_level(2)\
-                            .select_related("parent")[self.offset:self.offset + self.limit]
+                            .select_related("parent__parent__filter")[self.offset:self.offset + self.limit]
         self.shops = []
         self.shops_title = []
         self.items = []
@@ -126,7 +126,7 @@ class ShopsParser(Parser):
     async def post_request(self, request, response):
         soup = await super(ShopsParser, self).post_request(request, response)
 
-        started_at = int(soup.select_one(self.xpath_started_at).string.split("since")[-1].strip())
+        year_store_base = int(soup.select_one(self.xpath_year_store_base).string.split("since")[-1].strip())
         sales = soup.select_one(self.xpath_sales).find(string=re.compile("Sales")) or 0
         if sales:
             sales = sales.split("Sales")[0].strip()
@@ -137,7 +137,11 @@ class ShopsParser(Parser):
         if location:
             location = self.find_location(location.string.split(",")[-1].strip())
 
-        if all([sales >= settings.SALES, started_at >= settings.STARTED_AT, location in settings.COUNTRIES]):
+        if all([
+            sales >= request.parent.parent.filter.sales,
+            year_store_base >= request.parent.parent.filter.year_store_base,
+            location in request.parent.parent.filter.countries
+        ]):
             title = soup.select_one(self.xpath_title).string.strip()
             self.shops_title.append(title)
 
@@ -145,7 +149,7 @@ class ShopsParser(Parser):
                 self.shops.append(
                     Shop(
                         title=title,
-                        started_at=datetime.date(started_at, 1, 1),
+                        year_store_base=datetime.date(year_store_base, 1, 1),
                         sales=sales,
                         request=request,
                         location=location
