@@ -59,7 +59,7 @@ class Request(MPTTModel):
     )
     status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES, default=PENDING)
     started_at = models.DateTimeField(auto_now_add=True)
-    ended_at = models.DateTimeField(auto_now_add=True)
+    ended_at = models.DateTimeField(auto_now=True)
     search = models.CharField(verbose_name=_("Search phrase"), max_length=500)
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     url = models.URLField(verbose_name=_("Url"), max_length=1000)  # View makes preview this url (get image)
