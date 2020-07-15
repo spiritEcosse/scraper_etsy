@@ -74,14 +74,14 @@ class ItemsParser(Parser):
 
     def __init__(self, request, limit, offset):
         super(ItemsParser, self).__init__(request, limit, offset)
-        self.requests = self.request.get_children()[self.offset:self.limit]
+        self.requests = self.request.select_related("parent__filter").get_children()[self.offset:self.limit]
         self.shop_requests = []
 
     async def post_request(self, request, response):
         soup = await super(ItemsParser, self).post_request(request, response)
 
         tags = soup.select(self.xpath_tags)
-        if len(tags) > settings.COUNT_TAGS:
+        if len(tags) > request.parent.filter.count_tags:
             data_item = {
                 "h1": soup.select_one(self.xpath_h1).string.strip(),
                 "request_id": request.id
