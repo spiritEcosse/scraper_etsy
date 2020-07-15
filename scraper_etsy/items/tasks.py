@@ -38,17 +38,24 @@ def search(self, request_id, limit=None, offset=0):
 
     if parser.shop_requests:
         request_shop.delay(request_id, limit, len(parser.shop_requests), offset + limit)
-    elif limit + offset < settings.MAX_ON_PAGE:
+    elif limit + offset <= settings.MAX_ON_PAGE:
         next_limit = limit - len(parser.shop_requests)
         if next_limit:
-            self.retry(
-                countdown=settings.COUNTDOWN,
-                max_retries=settings.MAX_RETRIES,
-                kwargs={
-                    "limit": next_limit,
-                    "offset": limit + offset,
-                }
-            )
+            if self.request.retries == settings.MAX_RETRIES:
+                request.says_done()
+                request.save()
+            else:
+                self.retry(
+                    countdown=settings.COUNTDOWN,
+                    max_retries=settings.MAX_RETRIES,
+                    kwargs={
+                        "limit": next_limit,
+                        "offset": limit + offset,
+                    }
+                )
+        else:
+            request.says_done()
+            request.save()
 
 
 @celery_app.task()
@@ -69,6 +76,9 @@ def request_shop(request_id, limit, limit_q, offset):
             limit=next_limit,
             offset=offset
         )
+    else:
+        request.says_done()
+        request.save()
 
     for index, item in enumerate(parser.items):
         item.shop_id = redis_connection.hget("shops_", parser.shops_title[index])

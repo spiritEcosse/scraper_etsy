@@ -81,7 +81,7 @@ class Dashboard extends Component {
                         <CardHeader color="primary">
                           <h4 className={classes.cardTitleWhite}>Search: { request.search }</h4>
                           <p className={classes.cardCategoryWhite}>
-                            started at: { request.started_at }
+                            started at: { request.started_at }, status: { request.status }
                           </p>
                         </CardHeader>
                         <CardBody >

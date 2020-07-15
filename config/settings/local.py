@@ -69,7 +69,7 @@ CELERY_TASK_EAGER_PROPAGATES = True
 # ------------------------------------------------------------------------------
 
 COUNTDOWN = 5
-MAX_RETRIES = 100
+MAX_RETRIES = 4
 LIMIT = 4 * 16
 COUNT_TAGS = 10
 SALES = 1000

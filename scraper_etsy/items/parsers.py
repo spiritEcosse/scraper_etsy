@@ -30,11 +30,15 @@ class Parser:
     async def post_request(self, request, response):
         return BeautifulSoup(await response.text(), 'html.parser')
 
+    @staticmethod
+    async def request_set_status(request):
+        request.says_done()
+
     async def get_response(self, request, session):
         async with async_timeout.timeout(500):
             async with session.get(request.url) as response:
                 request.code = response.status
-                request.says_done()
+                await self.request_set_status(request)
                 await self.post_request(request, response)
 
     async def gather_tasks(self):
@@ -50,6 +54,10 @@ class RequestParser(Parser):
         super(RequestParser, self).__init__(request, limit, offset)
         self.requests = (self.request, )
         self.children = []
+
+    @staticmethod
+    async def request_set_status(request):
+        pass
 
     async def post_request(self, request, response):
         soup = await super(RequestParser, self).post_request(request, response)
@@ -74,7 +82,7 @@ class ItemsParser(Parser):
 
     def __init__(self, request, limit, offset):
         super(ItemsParser, self).__init__(request, limit, offset)
-        self.requests = self.request.select_related("parent__filter").get_children()[self.offset:self.limit]
+        self.requests = self.request.get_children()[self.offset:self.limit]
         self.shop_requests = []
 
     async def post_request(self, request, response):

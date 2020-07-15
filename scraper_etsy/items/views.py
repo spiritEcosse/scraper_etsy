@@ -27,7 +27,7 @@ class RequestViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.validated_data.update({'url': self.url.format(serializer.validated_data['search'])})
         super(RequestViewSet, self).perform_create(serializer)
-        search.delay(serializer.instance.id)
+        search.s(serializer.instance.id).apply_async(countdown=settings.COUNTDOWN)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -37,6 +37,7 @@ class RequestViewSet(viewsets.ModelViewSet):
             request_ = {
                 "id": request.id,
                 "search": request.search,
+                "status": request.get_status_display(),
                 "started_at": request.show_started_at(),
                 'items': []
             }
