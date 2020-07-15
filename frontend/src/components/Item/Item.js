@@ -133,7 +133,9 @@ export default function ItemTable(props) {
                         <TableBody>
                             {tableData
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((item) => {
+                                .map((child) => {
+                                    let item = child.item
+
                                     return (
                                         <TableRow key={item.id.toString()} className={classes.tableBodyRow}>
                                             <TableCell className={classes.tableCell}>

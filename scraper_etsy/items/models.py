@@ -71,9 +71,6 @@ class Request(MPTTModel):
     def __str__(self):
         return "search '{}' started at {} has status {}".format(self.search, self.started_at, self.get_status_display())
 
-    def show_started_at(self):
-        return self.started_at.strftime(settings.DATETIME_FORMAT[0])
-
     def get_descendants_by_level(self, level=1):
         return self.get_descendants().filter(level__gte=self.level + level)
 

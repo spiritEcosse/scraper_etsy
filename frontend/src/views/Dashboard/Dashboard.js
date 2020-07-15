@@ -81,15 +81,24 @@ class Dashboard extends Component {
                         <CardHeader color="primary">
                           <h4 className={classes.cardTitleWhite}>Search: { request.search }</h4>
                           <p className={classes.cardCategoryWhite}>
-                            started at: { request.started_at }, status: { request.status }
+                            started at: { request.started_at }, ended at: { request.ended_at },
+                            status: { request.status }
                           </p>
                         </CardHeader>
                         <CardBody >
-                          { request.items.length ?
+                          <div className={classes.typo}>
+                            <div className={classes.note}>
+                              Filter:
+                              limit: { request.filter.limit }, count_tags: { request.filter.count_tags },
+                              sales: { request.filter.sales }, year_store_base: { request.filter.year_store_base },
+                              countries: { request.filter.countries.join(', ') }
+                            </div>
+                          </div>
+                          { request.children.length ?
                               <Item
                                   tableHeaderColor="warning"
                                   tableHead={["Tags", "Item", "Shop"]}
-                                  tableData={ request.items }
+                                  tableData={ request.children }
                               />
                               :
                               <SnackbarContent
