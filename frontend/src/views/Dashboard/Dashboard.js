@@ -113,7 +113,7 @@ class Dashboard extends Component {
                               Filter:
                               limit: { request.filter.limit }, count_tags: { request.filter.count_tags },
                               sales: { request.filter.sales }, year_store_base: { request.filter.year_store_base },
-                              countries: { request.filter.countries.join(', ') }
+                              countries: { request.filter.list_countries.join(', ') }
                             </div>
                           </div>
                           { request.children.length ?

@@ -25,15 +25,19 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class FilterSerializer(CountryFieldMixin, serializers.ModelSerializer):
+    list_countries = serializers.SerializerMethodField()
+
     class Meta:
         model = Filter
         validators = []
-        fields = ("limit", "count_tags", "sales", "year_store_base", "countries")
+        fields = ("limit", "count_tags", "sales", "year_store_base", "countries", "list_countries", )
 
     @staticmethod
     def get_or_create(validated_data):
         return Filter.objects.get_or_create(**validated_data)[0]
 
+    def get_list_countries(self, instance):
+        return [country.name for country in instance.countries]
 
 class ItemSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
