@@ -24,7 +24,7 @@ def search(self, request_id, limit=None, offset=0):
     Request.objects.bulk_create(parser_request.children)
 
     with transaction.atomic(using=None):
-        Request.objects.partial_rebuild(request.tree_id)
+        Request.objects.rebuild()
 
     request = Request.objects.get(id=request_id)
     parser = ItemsParser(request, limit=len(parser_request.children), offset=0)
@@ -34,7 +34,7 @@ def search(self, request_id, limit=None, offset=0):
     Request.objects.bulk_create(parser.shop_requests)
 
     with transaction.atomic(using=None):
-        Request.objects.partial_rebuild(request.tree_id)
+        Request.objects.rebuild()
 
     if parser.shop_requests:
         request_shop.delay(request_id, limit, len(parser.shop_requests), offset + limit)
@@ -58,7 +58,10 @@ def search(self, request_id, limit=None, offset=0):
             request.save()
 
 
-@celery_app.task()
+@celery_app.task(
+    autoretry_for=(ClientConnectionError, OperationalError, ),
+    retry_kwargs={'countdown': settings.COUNTDOWN, "max_retries": settings.MAX_RETRIES}
+)
 def request_shop(request_id, limit, limit_q, offset):
     request = Request.objects.get(id=request_id)
     parser = ShopsParser(request, limit_q)
