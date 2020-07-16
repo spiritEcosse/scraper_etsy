@@ -1,4 +1,6 @@
 import json
+from aiohttp.client_exceptions import ClientConnectionError
+from django.db.utils import OperationalError
 
 from django.conf import settings
 from django.db import transaction
@@ -11,7 +13,11 @@ from .parsers import RequestParser, ShopsParser, ItemsParser
 redis_connection = from_url(settings.REDIS_URL)
 
 
-@celery_app.task(bind=True)
+@celery_app.task(
+    bind=True,
+    autoretry_for=(ClientConnectionError, OperationalError, ),
+    retry_kwargs={'countdown': settings.COUNTDOWN, "max_retries": settings.MAX_RETRIES}
+)
 def search(self, request_id, limit=None, offset=0):
     request = Request.objects.get(id=request_id)
 
