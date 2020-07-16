@@ -100,7 +100,7 @@ class ItemsParser(Parser):
             )
             self.shop_requests.append(
                 Request(
-                    url=soup.select_one(self.xpath_shop)["href"],
+                    url=soup.select_one(self.xpath_shop)["href"].split("?")[0],
                     parent=request, lft=1, rght=1, tree_id=request.tree_id, level=request.level + 1
                 )
             )
