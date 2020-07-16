@@ -37,6 +37,7 @@ class Dashboard extends Component {
     this.state = {
       requests: []
     }
+    this.setRequests = this.setRequests.bind(this);
   }
 
   componentDidMount() {
@@ -65,13 +66,21 @@ class Dashboard extends Component {
         .catch(err => console.log(err));
   }
 
+  setRequests(request) {
+    this.setState({
+      requests: [
+        request,
+        ...this.state.requests,
+      ]
+    });
+  }
   render() {
     const { classes } = this.props;
     const { requests } = this.state;
 
     return (
         <div>
-          <SearchForm />
+          <SearchForm setRequests={this.setRequests}/>
           <GridContainer>
             {
               requests.map((request) => {

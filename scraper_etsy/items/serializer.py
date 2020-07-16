@@ -67,3 +67,9 @@ class RequestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['filter'] = self.fields['filter'].get_or_create(validated_data.pop('filter'))
         return super(RequestSerializer, self).create(validated_data)
+
+    def to_representation(self, instance):
+        context = super(RequestSerializer, self).to_representation(instance)
+        if 'children' not in context:
+            context['children'] = []
+        return context

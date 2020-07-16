@@ -123,7 +123,6 @@ class SearchForm extends Component {
         if (!data.filter.countries.length) {
             data.filter.countries = this.state.helper.countries
         }
-        console.log(data)
 
         fetch(base_url + 'api/items/', {
             crossDomain : true,
@@ -148,6 +147,7 @@ class SearchForm extends Component {
                                 break;
                         }
                     } else {
+                        this.props.setRequests(json)
                         this.setState({ alert: {message: "You created new request.", type: "success"} });
                     }
                 }
