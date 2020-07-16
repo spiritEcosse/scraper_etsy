@@ -36,8 +36,10 @@ class FilterSerializer(CountryFieldMixin, serializers.ModelSerializer):
     def get_or_create(validated_data):
         return Filter.objects.get_or_create(**validated_data)[0]
 
-    def get_list_countries(self, instance):
+    @staticmethod
+    def get_list_countries(instance):
         return [country.name for country in instance.countries]
+
 
 class ItemSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
@@ -62,7 +64,7 @@ class RequestSerializer(serializers.ModelSerializer):
     children = RequestChildSerializer(required=False, source="children_have_item", many=True)
     status = serializers.CharField(required=False, source="get_status_display")
     started_at = serializers.DateTimeField(required=False, format=settings.DATETIME_FORMAT[0])
-    ended_at = serializers.DateTimeField(required=False, format=settings.DATETIME_FORMAT[0])
+    ended_at = serializers.DateTimeField(source="get_plain_ended_at", required=False, format=settings.DATETIME_FORMAT[0])
 
     class Meta:
         model = Request

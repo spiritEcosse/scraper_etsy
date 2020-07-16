@@ -92,6 +92,10 @@ class Request(MPTTModel):
     def is_server_error(self):   # 5xx
         return status.is_server_error(self.code)
 
+    def get_plain_ended_at(self):
+        if self.status is Request.DONE:
+            return self.ended_at
+
     def tags(self):
         return Tag.objects.filter(
             item__request__parent=self
