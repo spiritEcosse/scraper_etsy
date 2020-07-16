@@ -20,7 +20,7 @@ class RequestViewSet(viewsets.ModelViewSet):
             to_attr="children_have_item"
         ),
         "children_have_item__item__tags"
-    ).select_related("filter")[:3]
+    ).select_related("filter")
     url = "https://www.etsy.com/search?q={}"
 
     def perform_create(self, serializer):

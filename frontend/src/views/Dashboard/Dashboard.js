@@ -29,6 +29,7 @@ import CustomTabs from "components/CustomTabs/CustomTabs.js";
 import {base_url, bugs, server, website, access } from "variables/general.js";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import SnackbarContent from "../../components/Snackbar/SnackbarContent";
+import Button from "../../components/CustomButtons/Button";
 
 class Dashboard extends Component {
   constructor(props) {
@@ -37,13 +38,13 @@ class Dashboard extends Component {
     this.state = {
       requests: []
     }
+    this.nextUrl = null
     this.setRequests = this.setRequests.bind(this);
   }
 
-  componentDidMount() {
+  get(url= base_url + 'api/items/') {
     localStorage.setItem('token', access);
-
-    fetch(base_url + 'api/items/', {
+    fetch(url, {
       method : 'GET',
       headers : {
         Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -60,12 +61,24 @@ class Dashboard extends Component {
                 break;
             }
           } else {
-            this.setState({ requests : res })
+            this.nextUrl = res.next
+            this.setState({
+              requests: [
+                ...this.state.requests,
+                ...res.results
+              ]
+            });
           }
         })
         .catch(err => console.log(err));
   }
+  componentDidMount() {
+    this.get()
+  }
 
+  moreRequests = (e) => {
+    this.get(this.nextUrl)
+  }
   setRequests(request) {
     this.setState({
       requests: [
@@ -123,6 +136,20 @@ class Dashboard extends Component {
                 );
               })
             }
+          </GridContainer>
+          <GridContainer>
+            <GridItem xs={12} sm={12} md={12}>
+              <Button
+                  fullWidth
+                  color="primary"
+                  onClick={this.moreRequests}
+                  disabled={this.nextUrl == null}
+              >
+                { this.nextUrl == null ? "No more" : "More" }
+              </Button>
+            </GridItem>
+          </GridContainer>
+          <GridContainer>
             <GridItem xs={12} sm={12} md={6}>
               <CustomTabs
                   title="Tasks:"
