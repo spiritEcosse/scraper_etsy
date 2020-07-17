@@ -31,6 +31,9 @@ class Login extends Component {
       errors: {},
       alert: {},
     }
+    if (localStorage.getItem('token')) {
+      this.props.history.push('/')
+    }
     this.response = ""
   }
 
