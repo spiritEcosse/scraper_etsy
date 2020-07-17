@@ -26,7 +26,7 @@ import Cloud from "@material-ui/icons/Cloud";
 import Tasks from "components/Tasks/Tasks.js";
 import SearchForm from "components/Form/Search.js";
 import CustomTabs from "components/CustomTabs/CustomTabs.js";
-import {base_url, bugs, server, website, access } from "variables/general.js";
+import {base_url, bugs, server, website} from "variables/general.js";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import SnackbarContent from "../../components/Snackbar/SnackbarContent";
 import Button from "../../components/CustomButtons/Button";
@@ -38,12 +38,12 @@ class Dashboard extends Component {
     this.state = {
       requests: []
     }
-    this.nextUrl = null
+    this.nextUrl = base_url + 'api/items/'
     this.setRequests = this.setRequests.bind(this);
   }
 
-  get(url= base_url + 'api/items/') {
-    fetch(url, {
+  get() {
+    fetch(this.nextUrl, {
       method : 'GET',
       headers : {
         Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -58,6 +58,8 @@ class Dashboard extends Component {
             switch (this.response.status) {
               case 401:
                 break;
+              default:
+                break;
             }
           } else {
             this.nextUrl = res.next
@@ -71,12 +73,13 @@ class Dashboard extends Component {
         })
         .catch(err => console.log(err));
   }
+
   componentDidMount() {
     this.get()
   }
 
   moreRequests = (e) => {
-    this.get(this.nextUrl)
+    this.get()
   }
 
   setRequests(request) {
@@ -87,16 +90,16 @@ class Dashboard extends Component {
       ]
     });
   }
+
   render() {
     const { classes } = this.props;
-    const { requests } = this.state;
 
     return (
         <div>
           <SearchForm setRequests={this.setRequests}/>
           <GridContainer>
             {
-              requests.map((request) => {
+              this.state.requests.map((request) => {
                 return (
                     <GridItem xs={12} sm={12} md={6} key={request.id.toString()}>
                       <Card>

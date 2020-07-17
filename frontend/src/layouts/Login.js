@@ -1,43 +1,23 @@
-import React, {Component, useEffect} from "react";
+import React, {Component} from "react";
 import "assets/css/bootstrap.min.css";
 import "assets/scss/now-ui-kit.scss?v=1.4.0";
-import {access, base_url} from "variables/general.js";
+import {base_url} from "variables/general.js";
 
 import {
   Button,
   Card,
-  CardHeader,
   CardBody,
   CardFooter,
+  CardHeader,
+  Col,
+  Container,
   Form,
   Input,
+  InputGroup,
   InputGroupAddon,
   InputGroupText,
-  InputGroup,
-  Container,
-  Col,
 } from "reactstrap";
 import SnackbarContent from "../components/Snackbar/SnackbarContent";
-import routes from "../routes";
-import { Router, Route, Switch, Redirect } from "react-router-dom";
-
-// const switchRoutes = (
-//   <Switch>
-//     {routes.map((prop, key) => {
-//       if (prop.layout === "/admin") {
-//         return (
-//           <Route
-//             path={prop.layout + prop.path}
-//             component={prop.component}
-//             key={key}
-//           />
-//         );
-//       }
-//       return null;
-//     })}
-//     <Redirect from="/" to="/login" />
-//   </Switch>
-// );
 
 
 class Login extends Component {
@@ -96,9 +76,11 @@ class Login extends Component {
                   case 400:
                     this.setState({errors: json });
                     break;
+                  default:
+                    break;
                 }
               } else {
-                localStorage.setItem('token', json.token);
+                localStorage.setItem('token', json.access)
                 this.props.history.push('/')
               }
             }

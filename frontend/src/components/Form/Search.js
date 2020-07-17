@@ -9,7 +9,7 @@ import CardHeader from "components/Card/CardHeader.js";
 import CardBody from "components/Card/CardBody.js";
 import CardFooter from "components/Card/CardFooter.js";
 import TextField from '@material-ui/core/TextField';
-import {access, base_url} from "variables/general.js";
+import {base_url} from "variables/general.js";
 import SnackbarContent from "../Snackbar/SnackbarContent";
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -91,6 +91,8 @@ class SearchForm extends Component {
                     switch (this.response.status) {
                         case 401:
                             break;
+                        default:
+                            break;
                     }
                 } else {
                     this.setState({ countries : res.countries })
@@ -142,6 +144,8 @@ class SearchForm extends Component {
                             case 400:
                                 this.setState({errors: json });
                                 break;
+                            default:
+                                break;
                         }
                     } else {
                         this.props.setRequests(json)
@@ -173,7 +177,7 @@ class SearchForm extends Component {
     }
 
     render() {
-        const { classes, theme } = this.props;
+        const { classes } = this.props;
 
         const ITEM_HEIGHT = 48;
         const ITEM_PADDING_TOP = 8;

@@ -18,7 +18,6 @@ import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import DeleteIcon from '@material-ui/icons/Delete';
-import FilterListIcon from '@material-ui/icons/FilterList';
 import clsx from 'clsx';
 import TablePagination from '@material-ui/core/TablePagination';
 import styles from "assets/jss/material-dashboard-react/components/tableStyle.js";
@@ -81,7 +80,7 @@ EnhancedTableHead.propTypes = {
 };
 
 function EnhancedTableHead(props) {
-    const { classes, tableHead } = props;
+    const { tableHead } = props;
 
     return (
         <TableHead>

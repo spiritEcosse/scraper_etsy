@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import {createBrowserHistory} from "history";
-import {Redirect, Route, Router, Switch} from "react-router-dom";
+import {Route, Router, Switch} from "react-router-dom";
 
 import Admin from "layouts/Admin.js";
 import Login from "layouts/Login";
