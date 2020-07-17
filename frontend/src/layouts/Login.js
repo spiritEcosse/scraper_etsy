@@ -110,91 +110,89 @@ class Login extends Component {
 
     return (
         <>
-          <div className="page-header clear-filter" filter-color="blue">
-            <div className="page-header-image" style={{
-              backgroundImage: "url(" + require("assets/img/login.jpg") + ")",
-            }}
-            ></div>
-            <div className="content">
-              <Container>
-                <Col className="ml-auto mr-auto" md="4">
-                  <Card className="card-login card-plain">
-                    <Form className="form">
-                      <CardHeader className="text-center">
-                        <div className="logo-container">
-                          <img alt="..." src={require("assets/img/now-logo.png")}/>
-                        </div>
-                      </CardHeader>
-                      <CardBody>
-                        { this.state.alert.type ? alert : null }
+        <div className="page-header clear-filter" filter-color="blue">
+          <div className="page-header-image" style={{
+            backgroundImage: "url(" + require("assets/img/login.jpg") + ")",
+          }}
+          ></div>
+          <div className="content">
+            <Container>
+              <Col className="ml-auto mr-auto" md="4">
+                <Card className="card-login card-plain">
+                  <Form className="form" onSubmit={e => this.handleLogin(e, {
+                    username : this.state.username,
+                    password : this.state.password,
+                  })}>
+                  <CardHeader className="text-center">
+                    <div className="logo-container">
+                      <img alt="..." src={require("assets/img/now-logo.png")}/>
+                    </div>
+                  </CardHeader>
+                  <CardBody>
+                    { this.state.alert.type ? alert : null }
 
-                        <InputGroup
-                            className={
-                              "no-border input-lg" +
-                              (this.state.userNameFocus ? " input-group-focus" : "")
-                            }
-                        >
-                          <InputGroupAddon addonType="prepend">
-                            <InputGroupText>
-                              <i className="now-ui-icons users_circle-08"/>
-                            </InputGroupText>
-                          </InputGroupAddon>
-                          <Input
-                              placeholder="Username"
-                              type="text"
-                              name="username"
-                              invalid={ !!this.state.errors.username }
-                              onFocus={e => this.setUserNameFocus(e,true)}
-                              onChange={ this.handleChange }
-                              onBlur={e => this.setUserNameFocus(e,false)}
-                              autoFocus
-                          />
-                        </InputGroup>
-                        <InputGroup
-                            className={
-                              "no-border input-lg" +
-                              (this.state.passwordFocus ? " input-group-focus" : "")
-                            }
-                        >
-                          <InputGroupAddon addonType="prepend">
-                            <InputGroupText>
-                              <i className="now-ui-icons text_caps-small"/>
-                            </InputGroupText>
-                          </InputGroupAddon>
-                          <Input
-                              placeholder="Password"
-                              type="password"
-                              name="password"
-                              invalid={ !!this.state.errors.password }
-                              onChange={ this.handleChange }
-                              onFocus={e => this.setPasswordFocus(e,true)}
-                              onBlur={e => this.setPasswordFocus(e,false)}
-                          />
-                        </InputGroup>
-                      </CardBody>
-                      <CardFooter className="text-center">
-                        <Button
-                            block
-                            className="btn-round"
-                            color="info"
-                            href="#pablo"
-                            onClick={e => this.handleLogin(e, {
-                              username : this.state.username,
-                              password : this.state.password,
-                            })}
-                            size="lg"
-                        >
-                          Login
-                        </Button>
-                      </CardFooter>
-                    </Form>
-                  </Card>
-                </Col>
-              </Container>
-            </div>
-          </div>
-        </>
-    );
+                    <InputGroup
+                        className={
+                          "no-border input-lg" +
+                          (this.state.userNameFocus ? " input-group-focus" : "")
+                        }
+                    >
+                      <InputGroupAddon addonType="prepend">
+                        <InputGroupText>
+                          <i className="now-ui-icons users_circle-08"/>
+                        </InputGroupText>
+                      </InputGroupAddon>
+                      <Input
+                          placeholder="Username"
+                          type="text"
+                          name="username"
+                          invalid={ !!this.state.errors.username }
+                          onFocus={e => this.setUserNameFocus(e,true)}
+                          onChange={ this.handleChange }
+                          onBlur={e => this.setUserNameFocus(e,false)}
+                          autoFocus
+                      />
+                    </InputGroup>
+                    <InputGroup
+                        className={
+                          "no-border input-lg" +
+                          (this.state.passwordFocus ? " input-group-focus" : "")
+                        }
+                    >
+                      <InputGroupAddon addonType="prepend">
+                        <InputGroupText>
+                          <i className="now-ui-icons text_caps-small"/>
+                        </InputGroupText>
+                      </InputGroupAddon>
+                      <Input
+                          placeholder="Password"
+                          type="password"
+                          name="password"
+                          invalid={ !!this.state.errors.password }
+                          onChange={ this.handleChange }
+                          onFocus={e => this.setPasswordFocus(e,true)}
+                          onBlur={e => this.setPasswordFocus(e,false)}
+                      />
+                    </InputGroup>
+                  </CardBody>
+                  <CardFooter className="text-center">
+                    <Button
+                        block
+                        className="btn-round"
+                        color="info"
+                        size="lg"
+                    >
+                      Login
+                    </Button>
+                  </CardFooter>
+                </Form>
+              </Card>
+            </Col>
+          </Container>
+        </div>
+        </div>
+  </>
+  );
   }
 }
 
