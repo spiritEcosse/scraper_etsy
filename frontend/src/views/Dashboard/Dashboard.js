@@ -43,7 +43,6 @@ class Dashboard extends Component {
   }
 
   get(url= base_url + 'api/items/') {
-    localStorage.setItem('token', access);
     fetch(url, {
       method : 'GET',
       headers : {
@@ -79,6 +78,7 @@ class Dashboard extends Component {
   moreRequests = (e) => {
     this.get(this.nextUrl)
   }
+
   setRequests(request) {
     this.setState({
       requests: [

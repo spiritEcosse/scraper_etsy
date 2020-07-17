@@ -76,8 +76,6 @@ class SearchForm extends Component {
     }
 
     componentDidMount() {
-        localStorage.setItem('token', access);
-
         fetch(base_url + 'api/filter/', {
             method : 'GET',
             headers : {
@@ -113,7 +111,6 @@ class SearchForm extends Component {
 
     handleSearch = (e, data) => {
         e.preventDefault();
-        localStorage.setItem('token', access);
 
         data.filter = Object.fromEntries(
             Object.entries(this.state.filter).map(
