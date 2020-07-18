@@ -65,10 +65,11 @@ class RequestSerializer(serializers.ModelSerializer):
     status = serializers.CharField(required=False, source="get_status_display")
     started_at = serializers.DateTimeField(required=False, format=settings.DATETIME_FORMAT[0])
     ended_at = serializers.DateTimeField(source="get_plain_ended_at", required=False, format=settings.DATETIME_FORMAT[0])
+    code = serializers.IntegerField(required=False)
 
     class Meta:
         model = Request
-        fields = ("id", "search", "status", "started_at", "ended_at", "filter", "children", )
+        fields = ("id", "search", "status", "started_at", "ended_at", "filter", "children", "code", )
 
     def create(self, validated_data):
         validated_data['filter'] = self.fields['filter'].get_or_create(validated_data.pop('filter'))

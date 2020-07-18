@@ -66,12 +66,9 @@ class RequestParser(Parser):
         for tag_a in tags_a:
             url = tag_a["href"].split("?")[0]
 
-            if redis_connection.sadd(request.get_root().id, url):
+            if redis_connection.sadd(request.id, url):
                 self.children.append(
-                    Request(
-                        url=url, parent=request, lft=1, rght=1, tree_id=request.tree_id,
-                        level=request.level + 1
-                    )
+                    Request(url=url, parent=request, level=request.level + 1)
                 )
 
 
@@ -82,7 +79,7 @@ class ItemsParser(Parser):
 
     def __init__(self, request, limit, offset):
         super(ItemsParser, self).__init__(request, limit, offset)
-        self.requests = self.request.get_children()[self.offset:self.limit]
+        self.requests = self.request.children.select_related("parent").all()[self.offset:self.limit]
         self.shop_requests = []
 
     async def post_request(self, request, response):
@@ -101,7 +98,7 @@ class ItemsParser(Parser):
             self.shop_requests.append(
                 Request(
                     url=soup.select_one(self.xpath_shop)["href"].split("?")[0],
-                    parent=request, lft=1, rght=1, tree_id=request.tree_id, level=request.level + 1
+                    parent=request, level=request.level + 1
                 )
             )
 
@@ -114,8 +111,9 @@ class ShopsParser(Parser):
 
     def __init__(self, request, limit=0, offset=0):
         super(ShopsParser, self).__init__(request, limit, offset)
-        self.requests = self.request.get_descendants_by_level(2)\
-                            .select_related("parent__parent__filter")[self.offset:self.offset + self.limit]
+        self.requests = Request.objects.filter(
+            level=2, parent__parent=self.request
+        ).select_related("parent__parent__filter")[self.offset:self.offset + self.limit]
         self.shops = []
         self.shops_title = []
         self.items = []

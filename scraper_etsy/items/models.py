@@ -5,7 +5,6 @@ from django.core.validators import MinValueValidator, ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-from mptt.models import MPTTModel, TreeForeignKey
 from rest_framework import status
 
 
@@ -47,7 +46,7 @@ class Filter(models.Model):
         return self.limit, self.count_tags, self.sales, self.year_store_base, self.countries
 
 
-class Request(MPTTModel):
+class Request(models.Model):
     PENDING = 0
     DONE = 1
     STATUS_CHOICES = (
@@ -61,18 +60,16 @@ class Request(MPTTModel):
     started_at = models.DateTimeField(auto_now_add=True)
     ended_at = models.DateTimeField(auto_now=True)
     search = models.CharField(verbose_name=_("Search phrase"), max_length=500)
-    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     url = models.URLField(verbose_name=_("Url"), max_length=1000)  # View makes preview this url (get image)
     filter = models.ForeignKey(Filter, verbose_name=_("Filter"), null=True, blank=True, on_delete=models.CASCADE)
+    level = models.PositiveIntegerField(default=0)
 
-    class MPTTMeta:
-        order_insertion_by = ("-started_at", )
+    class Meta:
+        ordering = ('-started_at', )
 
     def __str__(self):
         return "search '{}' started at {} has status {}".format(self.search, self.started_at, self.get_status_display())
-
-    def get_descendants_by_level(self, level=1):
-        return self.get_descendants().filter(level__gte=self.level + level)
 
     def says_done(self):
         self.status = self.DONE
