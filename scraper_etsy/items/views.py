@@ -26,7 +26,7 @@ class RequestViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.validated_data.update({'url': self.url.format(serializer.validated_data['search'])})
         super(RequestViewSet, self).perform_create(serializer)
-        search.s(serializer.instance.id).apply_async(countdown=settings.COUNTDOWN_FIRST_RUN)
+        search.delay(serializer.instance.id)
 
 
 class FilterView(viewsets.views.APIView):

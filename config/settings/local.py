@@ -69,7 +69,6 @@ CELERY_TASK_EAGER_PROPAGATES = True
 # ------------------------------------------------------------------------------
 
 COUNTDOWN = 5
-COUNTDOWN_FIRST_RUN = 30
 MAX_RETRIES = 4
 LIMIT = 4 * 16
 COUNT_TAGS = 10
