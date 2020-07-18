@@ -16,7 +16,7 @@ redis_connection = from_url(settings.REDIS_URL)
 @celery_app.task(
     bind=True,
     autoretry_for=(ClientConnectionError, OperationalError, ),
-    retry_kwargs={'countdown': settings.COUNTDOWN, "max_retries": settings.MAX_RETRIES}
+    retry_kwargs={"max_retries": settings.MAX_RETRIES}
 )
 def search(self, request_id, limit=None, offset=0):
     request = Request.objects.get(id=request_id)
@@ -66,7 +66,7 @@ def search(self, request_id, limit=None, offset=0):
 
 @celery_app.task(
     autoretry_for=(ClientConnectionError, OperationalError, ),
-    retry_kwargs={'countdown': settings.COUNTDOWN, "max_retries": settings.MAX_RETRIES}
+    retry_kwargs={"max_retries": settings.MAX_RETRIES}
 )
 def request_shop(request_id, limit, limit_q, offset):
     request = Request.objects.get(id=request_id)
