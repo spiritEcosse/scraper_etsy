@@ -30,6 +30,9 @@ import {base_url, bugs, server, website} from "variables/general.js";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import SnackbarContent from "../../components/Snackbar/SnackbarContent";
 import Button from "../../components/CustomButtons/Button";
+import CachedIcon from '@material-ui/icons/Cached';
+import Box from '@material-ui/core/Box';
+import IconButton from '@material-ui/core/IconButton';
 
 class Dashboard extends Component {
   constructor(props) {
@@ -91,6 +94,48 @@ class Dashboard extends Component {
     });
   }
 
+  updateRequest = (id) => {
+    let response;
+
+    fetch(base_url + 'api/items/' + id + "/", {
+      method : 'GET',
+      headers : {
+        Authorization : `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+        .then(res => {
+          response = res
+          return res.json();
+        })
+        .then(res => {
+          if (! response.ok ) {
+            switch (response.status) {
+              case 401:
+                break;
+              case 404:
+                break;
+              default:
+                break;
+            }
+          } else {
+            this.setState(state => {
+              const requests = state.requests.map((request) => {
+                if (request.id === id) {
+                  return res;
+                } else {
+                  return request;
+                }
+              });
+
+              return {
+                requests,
+              };
+            });
+          }
+        })
+        .catch(err => console.log(err));
+  }
+
   render() {
     const { classes } = this.props;
 
@@ -104,7 +149,24 @@ class Dashboard extends Component {
                     <GridItem xs={12} sm={12} md={6} key={request.id.toString()}>
                       <Card>
                         <CardHeader color="primary">
-                          <h4 className={classes.cardTitleWhite}>Search: { request.search }</h4>
+                          <Box display="flex" flexWrap="nowrap">
+                            <Box width="100%">
+                              <h4 className={classes.cardTitleWhite}>Search: { request.search }</h4>
+                            </Box>
+                            <Box flexShrink={1} width="20%">
+                              <p className={classes.cardTitleWhite}>
+                                listings: { request.children.length }
+                              </p>
+                            </Box>
+                            <Box flexShrink={2}>
+                              <IconButton
+                                  disabled={ !!request.ended_at }
+                                  className={classes.cardCategoryWhite} size="small" aria-label="update"
+                                  onClick={() => this.updateRequest (request.id)}>
+                                <CachedIcon/>
+                              </IconButton>
+                            </Box>
+                          </Box>
                           <p className={classes.cardCategoryWhite}>
                             started at: { request.started_at }, ended at: { request.ended_at },
                             status: { request.status }, code: { request.code }
