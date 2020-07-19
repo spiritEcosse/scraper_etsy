@@ -35,7 +35,7 @@ class Parser:
         request.says_done()
 
     async def get_response(self, request, session):
-        async with async_timeout.timeout(500):
+        async with async_timeout.timeout(5000):
             async with session.get(request.url) as response:
                 request.code = response.status
                 await self.request_set_status(request)
