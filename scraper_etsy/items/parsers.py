@@ -79,7 +79,7 @@ class ItemsParser(Parser):
 
     def __init__(self, request, limit, offset):
         super(ItemsParser, self).__init__(request, limit, offset)
-        self.requests = self.request.children.select_related("parent").all()[self.offset:self.limit]
+        self.requests = self.request.children.all()[self.offset:self.limit]
         self.shop_requests = []
 
     async def post_request(self, request, response):

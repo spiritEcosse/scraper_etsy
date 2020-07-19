@@ -1,17 +1,14 @@
 import json
 
 from aiohttp.client_exceptions import ClientConnectionError
-from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db.models import Prefetch
 from django.db.utils import OperationalError
 from redis import from_url
-from django.db import connection
 
 from config import celery_app
 from scraper_etsy.items.models import Request, Item, Tag, Shop
 from .parsers import RequestParser, ShopsParser, ItemsParser
-
-logger = get_task_logger(__name__)
 
 redis_connection = from_url(settings.REDIS_URL)
 
@@ -22,7 +19,12 @@ redis_connection = from_url(settings.REDIS_URL)
     retry_kwargs={"max_retries": settings.MAX_RETRIES}
 )
 def search(self, request_id, limit=None, offset=0):
-    request = Request.objects.get(id=request_id)
+    request = Request.objects.select_related("filter").prefetch_related(
+        Prefetch(
+            "children",
+            queryset=Request.objects.select_related("parent__filter"),
+        )
+    ).get(id=request_id)
 
     if limit is None:
         limit = request.filter.limit
@@ -65,7 +67,6 @@ def search(self, request_id, limit=None, offset=0):
     retry_kwargs={"max_retries": settings.MAX_RETRIES}
 )
 def request_shop(request_id, limit, limit_q, offset):
-    logger.info("start request_shop len(connection.queries) {}".format(len(connection.queries)))
     request = Request.objects.get(id=request_id)
     parser = ShopsParser(request, limit_q)
     parser.run()
@@ -90,7 +91,6 @@ def request_shop(request_id, limit, limit_q, offset):
         item.shop_id = redis_connection.hget("shops_", parser.shops_title[index])
 
     tags = []
-    logger.info("start Item.objects.bulk_create len(connection.queries) {}".format(len(connection.queries)))
     for item in Item.objects.bulk_create(parser.items):
         tags_ = json.loads(redis_connection.hget("tags", item.request_id))
 
@@ -99,5 +99,4 @@ def request_shop(request_id, limit, limit_q, offset):
             tag.item = item
             tags.append(tag)
 
-    logger.info("start Tag.objects.bulk_create len(connection.queries) {}".format(len(connection.queries)))
     Tag.objects.bulk_create(tags)
