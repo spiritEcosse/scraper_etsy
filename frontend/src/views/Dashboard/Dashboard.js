@@ -153,7 +153,7 @@ class Dashboard extends Component {
                             <Box width="100%">
                               <h4 className={classes.cardTitleWhite}>Search: { request.search }</h4>
                             </Box>
-                            <Box flexShrink={1} width="20%">
+                            <Box flexShrink={1} width="50%">
                               <p className={classes.cardTitleWhite}>
                                 listings: { request.children.length }
                               </p>
