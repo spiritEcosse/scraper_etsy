@@ -149,16 +149,14 @@ class Dashboard extends Component {
                     <GridItem xs={12} sm={12} md={6} key={request.id.toString()}>
                       <Card>
                         <CardHeader color="primary">
-                          <Box display="flex" flexWrap="nowrap">
-                            <Box width="100%">
+                          <Box display="flex">
+                            <Box flexGrow={1}>
                               <h4 className={classes.cardTitleWhite}>Search: { request.search }</h4>
                             </Box>
-                            <Box flexShrink={1} width="50%">
-                              <p className={classes.cardTitleWhite}>
-                                listings: { request.children.length }
-                              </p>
+                            <Box mx={1} alignSelf="center">
+                              listings: { request.children.length }
                             </Box>
-                            <Box flexShrink={2}>
+                            <Box>
                               <IconButton
                                   disabled={ !!request.ended_at }
                                   className={classes.cardCategoryWhite} size="small" aria-label="update"
