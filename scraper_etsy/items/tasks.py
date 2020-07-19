@@ -35,6 +35,7 @@ def search(self, request_id, limit=None, offset=0):
     Request.objects.bulk_update(parser_request.requests, ["status", "code"])
     Request.objects.bulk_create(parser_request.children)
 
+    request.refresh_from_db()
     parser = ItemsParser(request, limit=len(parser_request.children), offset=0)
     parser.run()
 
