@@ -18,7 +18,6 @@ import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import DeleteIcon from '@material-ui/icons/Delete';
-import FilterListIcon from '@material-ui/icons/FilterList';
 import clsx from 'clsx';
 import TablePagination from '@material-ui/core/TablePagination';
 import styles from "assets/jss/material-dashboard-react/components/tableStyle.js";
@@ -87,13 +86,8 @@ function EnhancedTableHead(props) {
         <TableHead>
             <TableRow>
                 {tableHead.map((headCell, key) => (
-                    <TableCell
-                        key={key}
-                        // classes.tableCell + " " + classes.tableHeadCell
-                        // align={headCell.numeric ? 'right' : 'left'}
-                        // padding={headCell.disablePadding ? 'none' : 'default'}
-                    >
-                        {headCell}
+                    <TableCell key={key}>
+                        { headCell }
                     </TableCell>
                 ))}
             </TableRow>
@@ -133,7 +127,8 @@ export default function ItemTable(props) {
                         <TableBody>
                             {tableData
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((item) => {
+                                .map((child) => {
+                                    let item = child.item
                                     return (
                                         <TableRow key={item.id.toString()} className={classes.tableBodyRow}>
                                             <TableCell className={classes.tableCell}>
