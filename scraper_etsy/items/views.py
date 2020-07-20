@@ -15,7 +15,7 @@ class RequestViewSet(viewsets.ModelViewSet):
         Prefetch(
             "children",
             queryset=Request.objects.select_related(
-                "item__shop__request"
+                "item__shop"
             ).exclude(item__isnull=True),
             to_attr="children_have_item"
         ),

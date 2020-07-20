@@ -44,7 +44,7 @@ class FilterSerializer(CountryFieldMixin, serializers.ModelSerializer):
 class ItemSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     url = serializers.URLField(source="request.url")
-    shop_url = serializers.URLField(source="shop.request.url")
+    shop_url = serializers.URLField(source="shop.url")
 
     class Meta:
         model = Item

@@ -62,7 +62,7 @@ class Request(models.Model):
     search = models.CharField(verbose_name=_("Search phrase"), max_length=500)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     url = models.URLField(verbose_name=_("Url"), max_length=1000)  # View makes preview this url (get image)
-    filter = models.ForeignKey(Filter, verbose_name=_("Filter"), null=True, blank=True, on_delete=models.CASCADE)
+    filter = models.ForeignKey(Filter, verbose_name=_("Filter"), null=True, blank=True, on_delete=models.DO_NOTHING)
     level = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -101,10 +101,10 @@ class Request(models.Model):
 
 class Shop(models.Model):
     title = models.CharField(verbose_name=_("Title"), max_length=200, unique=True)
-    request = models.OneToOneField(Request, related_name="shop", on_delete=models.CASCADE)
     year_store_base = models.DateField(verbose_name=_("Shop opening date"))
     sales = models.IntegerField(verbose_name=_("Total sales"))
     location = CountryField()
+    url = models.URLField(verbose_name=_("Url"), max_length=1000)  # View makes preview this url (get image)
 
     def __str__(self):
         return self.title

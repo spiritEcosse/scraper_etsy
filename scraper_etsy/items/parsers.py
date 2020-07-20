@@ -158,8 +158,8 @@ class ShopsParser(Parser):
                         title=title,
                         year_store_base=datetime.date(year_store_base, 1, 1),
                         sales=sales,
-                        request=request,
-                        location=location
+                        location=location,
+                        url=request.url,
                     )
                 )
             self.items.append(

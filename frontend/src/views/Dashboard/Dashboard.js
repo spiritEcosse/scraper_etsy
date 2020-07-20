@@ -33,6 +33,7 @@ import Button from "../../components/CustomButtons/Button";
 import CachedIcon from '@material-ui/icons/Cached';
 import Box from '@material-ui/core/Box';
 import IconButton from '@material-ui/core/IconButton';
+import ClearIcon from '@material-ui/icons/Clear';
 
 class Dashboard extends Component {
   constructor(props) {
@@ -136,6 +137,33 @@ class Dashboard extends Component {
         .catch(err => console.log(err));
   }
 
+  deleteRequest = id => {
+    fetch(base_url + 'api/items/' + id + "/", {
+      method : 'DELETE',
+      headers : {
+        Authorization : `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+        .then(response => {
+          if (! response.ok ) {
+            switch (response.status) {
+              case 401:
+                break;
+              default:
+                break;
+            }
+          } else {
+            let requests = this.state.requests.filter((request)=>{
+              return request.id !== id;
+            });
+            this.setState({
+              requests
+            });
+          }
+        })
+        .catch(err => console.log(err));
+  }
+
   render() {
     const { classes } = this.props;
 
@@ -153,7 +181,7 @@ class Dashboard extends Component {
                             <Box flexGrow={1}>
                               <h4 className={classes.cardTitleWhite}>Search: { request.search }</h4>
                             </Box>
-                            <Box mx={1} alignSelf="center">
+                            <Box mx={1} mt={0.6}>
                               listings: { request.children.length }
                             </Box>
                             <Box>
@@ -162,6 +190,13 @@ class Dashboard extends Component {
                                   className={classes.cardCategoryWhite} size="small" aria-label="update"
                                   onClick={() => this.updateRequest (request.id)}>
                                 <CachedIcon/>
+                              </IconButton>
+                            </Box>
+                            <Box>
+                              <IconButton
+                                  className={classes.cardCategoryWhite} size="small" aria-label="delete"
+                                  onClick={() => this.deleteRequest (request.id)}>
+                                <ClearIcon/>
                               </IconButton>
                             </Box>
                           </Box>
