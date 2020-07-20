@@ -85,7 +85,13 @@ class ItemsParser(Parser):
     async def post_request(self, request, response):
         soup = await super(ItemsParser, self).post_request(request, response)
 
-        tags = tuple(tag for tag in soup.select(self.xpath_tags) if len(tag.string.strip().split()) >= 2)
+        tags = set()
+
+        for tag_a in soup.select(self.xpath_tags):
+            tag = tag_a.string.strip()
+
+            if len(tag.split()) >= 2:
+                tags.add(tag)
 
         if len(tags) > request.parent.filter.count_tags:
             data_item = {
@@ -94,7 +100,7 @@ class ItemsParser(Parser):
             }
             redis_connection.hset("items", request.id, json.dumps(data_item))
             redis_connection.hset(
-                "tags", request.id, json.dumps([{"name": tag_a.string.strip()} for tag_a in tags])
+                "tags", request.id, json.dumps([{"name": tag} for tag in tags])
             )
             self.shop_requests.append(
                 Request(
