@@ -28,6 +28,9 @@ shell:
 pytest:
 	docker-compose -f ${COMPOSE_FILE} run --rm django pytest
 
+db_connection:
+	ocker-compose -f ${COMPOSE_FILE} exec postgres watch 'psql -U debug -d scraper_etsy -c "SELECT client_addr, client_port, state FROM pg_stat_activity"'
+
 tests:
 	docker-compose -f ${COMPOSE_FILE} run --rm django tests
 

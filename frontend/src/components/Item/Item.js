@@ -77,11 +77,11 @@ const EnhancedTableToolbar = (props) => {
 };
 
 EnhancedTableHead.propTypes = {
-    classes: PropTypes.object.isRequired,
+  classes: PropTypes.object.isRequired,
 };
 
 function EnhancedTableHead(props) {
-    const { classes, tableHead } = props;
+    const { tableHead } = props;
 
     return (
         <TableHead>

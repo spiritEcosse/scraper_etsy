@@ -1,12 +1,52 @@
-from django.db import models
-from django.utils.translation import ugettext_lazy as _
-from django_countries.fields import CountryField
-from mptt.models import MPTTModel, TreeForeignKey
-from rest_framework import status
+from datetime import date
+
 from django.conf import settings
+from django.core.validators import MinValueValidator, ValidationError
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+from django_countries.fields import CountryField
+from rest_framework import status
 
 
-class Request(MPTTModel):
+def validate_year(value):
+    if value > date.today().year:
+        raise ValidationError(
+            _('%(value)s is more than today year'),
+            params={'value': value},
+        )
+
+
+class Filter(models.Model):
+    limit = models.PositiveIntegerField(
+        verbose_name=_("Limit of listings"),
+        validators=(MinValueValidator(1), ),
+        default=settings.LIMIT
+    )
+    count_tags = models.PositiveIntegerField(
+        verbose_name=_("Count of tags"),
+        validators=(MinValueValidator(1), ),
+        default=settings.COUNT_TAGS
+    )
+    sales = models.PositiveIntegerField(
+        verbose_name=_("Count of sales"),
+        validators=(MinValueValidator(1), ),
+        default=settings.SALES
+    )
+    year_store_base = models.PositiveIntegerField(
+        verbose_name=_("Year store base"),
+        validators=(MinValueValidator(1970), validate_year, ),
+        default=settings.YEAR_STORE_BASE
+    )
+    countries = CountryField(multiple=True, default=settings.COUNTRIES)
+
+    class Meta:
+        unique_together = (("limit", "count_tags", "sales", "year_store_base", "countries"), )
+
+    def __str__(self):
+        return self.limit, self.count_tags, self.sales, self.year_store_base, self.countries
+
+
+class Request(models.Model):
     PENDING = 0
     DONE = 1
     STATUS_CHOICES = (
@@ -18,22 +58,18 @@ class Request(MPTTModel):
     )
     status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES, default=PENDING)
     started_at = models.DateTimeField(auto_now_add=True)
-    ended_at = models.DateTimeField(auto_now_add=True)
+    ended_at = models.DateTimeField(auto_now=True)
     search = models.CharField(verbose_name=_("Search phrase"), max_length=500)
-    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     url = models.URLField(verbose_name=_("Url"), max_length=1000)  # View makes preview this url (get image)
+    filter = models.ForeignKey(Filter, verbose_name=_("Filter"), null=True, blank=True, on_delete=models.DO_NOTHING)
+    level = models.PositiveIntegerField(default=0)
 
-    class MPTTMeta:
-        order_insertion_by = ("-started_at", )
+    class Meta:
+        ordering = ('-started_at', )
 
     def __str__(self):
         return "search '{}' started at {} has status {}".format(self.search, self.started_at, self.get_status_display())
-
-    def show_started_at(self):
-        return self.started_at.strftime(settings.DATETIME_FORMAT[0])
-
-    def get_descendants_by_level(self, level=1):
-        return self.get_descendants().filter(level__gte=self.level + level)
 
     def says_done(self):
         self.status = self.DONE
@@ -53,6 +89,10 @@ class Request(MPTTModel):
     def is_server_error(self):   # 5xx
         return status.is_server_error(self.code)
 
+    def get_plain_ended_at(self):
+        if self.status is Request.DONE:
+            return self.ended_at
+
     def tags(self):
         return Tag.objects.filter(
             item__request__parent=self
@@ -61,10 +101,10 @@ class Request(MPTTModel):
 
 class Shop(models.Model):
     title = models.CharField(verbose_name=_("Title"), max_length=200, unique=True)
-    request = models.OneToOneField(Request, related_name="shop", on_delete=models.CASCADE)
-    started_at = models.DateField(verbose_name=_("Shop opening date"))
+    year_store_base = models.DateField(verbose_name=_("Shop opening date"))
     sales = models.IntegerField(verbose_name=_("Total sales"))
     location = CountryField()
+    url = models.URLField(verbose_name=_("Url"), max_length=1000)  # View makes preview this url (get image)
 
     def __str__(self):
         return self.title

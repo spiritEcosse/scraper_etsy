@@ -24,11 +24,16 @@ import BugReport from "@material-ui/icons/BugReport";
 import Code from "@material-ui/icons/Code";
 import Cloud from "@material-ui/icons/Cloud";
 import Tasks from "components/Tasks/Tasks.js";
+import SearchForm from "components/Form/Search.js";
 import CustomTabs from "components/CustomTabs/CustomTabs.js";
 import {base_url, bugs, server, website} from "variables/general.js";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
-
-const access = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjQ2ODY5ODAyLCJqdGkiOiI3MDQxZjJkZGE5OTg0ZmFkYjZkN2VjNmNhMTg3NzM3MiIsInVzZXJfaWQiOjF9.wOE580zk4SF32N9-EEzB1coOIQajPQl9TyYWeETJFek"
+import SnackbarContent from "../../components/Snackbar/SnackbarContent";
+import Button from "../../components/CustomButtons/Button";
+import CachedIcon from '@material-ui/icons/Cached';
+import Box from '@material-ui/core/Box';
+import IconButton from '@material-ui/core/IconButton';
+import ClearIcon from '@material-ui/icons/Clear';
 
 class Dashboard extends Component {
   constructor(props) {
@@ -37,12 +42,12 @@ class Dashboard extends Component {
     this.state = {
       requests: []
     }
+    this.nextUrl = base_url + 'api/items/'
+    this.setRequests = this.setRequests.bind(this);
   }
 
-  componentDidMount() {
-    localStorage.setItem('token', access);
-
-    fetch(base_url + 'api/items/', {
+  get() {
+    fetch(this.nextUrl, {
       method : 'GET',
       headers : {
         Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -57,9 +62,103 @@ class Dashboard extends Component {
             switch (this.response.status) {
               case 401:
                 break;
+              default:
+                break;
             }
           } else {
-            this.setState({ requests : res })
+            this.nextUrl = res.next
+            this.setState({
+              requests: [
+                ...this.state.requests,
+                ...res.results
+              ]
+            });
+          }
+        })
+        .catch(err => console.log(err));
+  }
+
+  componentDidMount() {
+    this.get()
+  }
+
+  moreRequests = (e) => {
+    this.get()
+  }
+
+  setRequests(request) {
+    this.setState({
+      requests: [
+        request,
+        ...this.state.requests,
+      ]
+    });
+  }
+
+  updateRequest = (id) => {
+    let response;
+
+    fetch(base_url + 'api/items/' + id + "/", {
+      method : 'GET',
+      headers : {
+        Authorization : `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+        .then(res => {
+          response = res
+          return res.json();
+        })
+        .then(res => {
+          if (! response.ok ) {
+            switch (response.status) {
+              case 401:
+                break;
+              case 404:
+                break;
+              default:
+                break;
+            }
+          } else {
+            this.setState(state => {
+              const requests = state.requests.map((request) => {
+                if (request.id === id) {
+                  return res;
+                } else {
+                  return request;
+                }
+              });
+
+              return {
+                requests,
+              };
+            });
+          }
+        })
+        .catch(err => console.log(err));
+  }
+
+  deleteRequest = id => {
+    fetch(base_url + 'api/items/' + id + "/", {
+      method : 'DELETE',
+      headers : {
+        Authorization : `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+        .then(response => {
+          if (! response.ok ) {
+            switch (response.status) {
+              case 401:
+                break;
+              default:
+                break;
+            }
+          } else {
+            let requests = this.state.requests.filter((request)=>{
+              return request.id !== id;
+            });
+            this.setState({
+              requests
+            });
           }
         })
         .catch(err => console.log(err));
@@ -67,34 +166,88 @@ class Dashboard extends Component {
 
   render() {
     const { classes } = this.props;
-    const { requests } = this.state;
 
     return (
         <div>
+          <SearchForm setRequests={this.setRequests}/>
           <GridContainer>
             {
-              requests.map((request) => {
+              this.state.requests.map((request) => {
                 return (
                     <GridItem xs={12} sm={12} md={6} key={request.id.toString()}>
                       <Card>
                         <CardHeader color="primary">
-                          <h4 className={classes.cardTitleWhite}>Search: { request.search }</h4>
+                          <Box display="flex">
+                            <Box flexGrow={1}>
+                              <h4 className={classes.cardTitleWhite}>Search: { request.search }</h4>
+                            </Box>
+                            <Box mx={1} mt={0.6}>
+                              listings: { request.children.length }
+                            </Box>
+                            <Box>
+                              <IconButton
+                                  disabled={ !!request.ended_at }
+                                  className={classes.cardCategoryWhite} size="small" aria-label="update"
+                                  onClick={() => this.updateRequest (request.id)}>
+                                <CachedIcon/>
+                              </IconButton>
+                            </Box>
+                            <Box>
+                              <IconButton
+                                  className={classes.cardCategoryWhite} size="small" aria-label="delete"
+                                  onClick={() => this.deleteRequest (request.id)}>
+                                <ClearIcon/>
+                              </IconButton>
+                            </Box>
+                          </Box>
                           <p className={classes.cardCategoryWhite}>
-                            started at: { request.started_at }
+                            started at: { request.started_at }, ended at: { request.ended_at },
+                            status: { request.status }, code: { request.code }
                           </p>
                         </CardHeader>
                         <CardBody >
-                          <Item
-                              tableHeaderColor="warning"
-                              tableHead={["Tags", "Item", "Shop"]}
-                              tableData={ request.items }
-                          />
+                          <div className={classes.typo}>
+                            <div className={classes.note}>
+                              Filter:
+                              limit: { request.filter.limit }, count_tags: { request.filter.count_tags },
+                              sales: { request.filter.sales }, year_store_base: { request.filter.year_store_base },
+                              countries: { request.filter.list_countries.join(', ') }
+                            </div>
+                          </div>
+                          { request.children.length ?
+                              <Item
+                                  tableHeaderColor="warning"
+                                  tableHead={["Tags", "Item", "Shop"]}
+                                  tableData={ request.children }
+                              />
+                              :
+                              <SnackbarContent
+                                  message={
+                                    "Don't have any items."
+                                  }
+                                  color="info"
+                              />
+                          }
                         </CardBody>
                       </Card>
                     </GridItem>
                 );
               })
             }
+          </GridContainer>
+          <GridContainer>
+            <GridItem xs={12} sm={12} md={12}>
+              <Button
+                  fullWidth
+                  color="primary"
+                  onClick={this.moreRequests}
+                  disabled={this.nextUrl == null}
+              >
+                { this.nextUrl == null ? "No more" : "More" }
+              </Button>
+            </GridItem>
+          </GridContainer>
+          <GridContainer>
             <GridItem xs={12} sm={12} md={6}>
               <CustomTabs
                   title="Tasks:"

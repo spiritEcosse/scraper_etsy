@@ -69,11 +69,12 @@ CELERY_TASK_EAGER_PROPAGATES = True
 # ------------------------------------------------------------------------------
 
 COUNTDOWN = 5
+COUNTDOWN_FIRST_RUN = 5
 MAX_RETRIES = 100
 LIMIT = 4 * 16
 COUNT_TAGS = 10
 SALES = 1000
-STARTED_AT = 2016
+YEAR_STORE_BASE = 2016
 COUNTRIES = ["US", "CA"]
 MAX_ON_PAGE = 4 * 16
 

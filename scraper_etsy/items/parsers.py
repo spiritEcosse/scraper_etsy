@@ -30,11 +30,15 @@ class Parser:
     async def post_request(self, request, response):
         return BeautifulSoup(await response.text(), 'html.parser')
 
+    @staticmethod
+    async def request_set_status(request):
+        request.says_done()
+
     async def get_response(self, request, session):
-        async with async_timeout.timeout(500):
+        async with async_timeout.timeout(5000):
             async with session.get(request.url) as response:
                 request.code = response.status
-                request.says_done()
+                await self.request_set_status(request)
                 await self.post_request(request, response)
 
     async def gather_tasks(self):
@@ -51,6 +55,10 @@ class RequestParser(Parser):
         self.requests = (self.request, )
         self.children = []
 
+    @staticmethod
+    async def request_set_status(request):
+        pass
+
     async def post_request(self, request, response):
         soup = await super(RequestParser, self).post_request(request, response)
         tags_a = soup.select(self.xpath)[self.offset:self.offset + self.limit]
@@ -58,12 +66,9 @@ class RequestParser(Parser):
         for tag_a in tags_a:
             url = tag_a["href"].split("?")[0]
 
-            if redis_connection.sadd(request.get_root().id, url):
+            if redis_connection.sadd(request.id, url):
                 self.children.append(
-                    Request(
-                        url=url, parent=request, lft=1, rght=1, tree_id=request.tree_id,
-                        level=request.level + 1
-                    )
+                    Request(url=url, parent=request, level=request.level + 1)
                 )
 
 
@@ -74,40 +79,48 @@ class ItemsParser(Parser):
 
     def __init__(self, request, limit, offset):
         super(ItemsParser, self).__init__(request, limit, offset)
-        self.requests = self.request.get_children()[self.offset:self.limit]
+        self.requests = self.request.children.all()[self.offset:self.limit]
         self.shop_requests = []
 
     async def post_request(self, request, response):
         soup = await super(ItemsParser, self).post_request(request, response)
 
-        tags = soup.select(self.xpath_tags)
-        if len(tags) > settings.COUNT_TAGS:
+        tags = set()
+
+        for tag_a in soup.select(self.xpath_tags):
+            tag = tag_a.string.strip()
+
+            if len(tag.split()) >= 2:
+                tags.add(tag)
+
+        if len(tags) > request.parent.filter.count_tags:
             data_item = {
                 "h1": soup.select_one(self.xpath_h1).string.strip(),
                 "request_id": request.id
             }
             redis_connection.hset("items", request.id, json.dumps(data_item))
             redis_connection.hset(
-                "tags", request.id, json.dumps([{"name": tag_a.string.strip()} for tag_a in tags])
+                "tags", request.id, json.dumps([{"name": tag} for tag in tags])
             )
             self.shop_requests.append(
                 Request(
-                    url=soup.select_one(self.xpath_shop)["href"],
-                    parent=request, lft=1, rght=1, tree_id=request.tree_id, level=request.level + 1
+                    url=soup.select_one(self.xpath_shop)["href"].split("?")[0],
+                    parent=request, level=request.level + 1
                 )
             )
 
 
 class ShopsParser(Parser):
     xpath_title = "div[class~='shop-name-and-title-container'] h1"
-    xpath_started_at = "span[class~='etsy-since']"
+    xpath_year_store_base = "span[class~='etsy-since']"
     xpath_sales = 'div[class~="shop-info"]'
     xpath_location = 'span[data-key="user_location"]'
 
     def __init__(self, request, limit=0, offset=0):
         super(ShopsParser, self).__init__(request, limit, offset)
-        self.requests = self.request.get_descendants_by_level(2)\
-                            .select_related("parent")[self.offset:self.offset + self.limit]
+        self.requests = Request.objects.filter(
+            level=2, parent__parent=self.request
+        ).select_related("parent__parent__filter")[self.offset:self.offset + self.limit]
         self.shops = []
         self.shops_title = []
         self.items = []
@@ -126,7 +139,7 @@ class ShopsParser(Parser):
     async def post_request(self, request, response):
         soup = await super(ShopsParser, self).post_request(request, response)
 
-        started_at = int(soup.select_one(self.xpath_started_at).string.split("since")[-1].strip())
+        year_store_base = int(soup.select_one(self.xpath_year_store_base).string.split("since")[-1].strip())
         sales = soup.select_one(self.xpath_sales).find(string=re.compile("Sales")) or 0
         if sales:
             sales = sales.split("Sales")[0].strip()
@@ -137,7 +150,11 @@ class ShopsParser(Parser):
         if location:
             location = self.find_location(location.string.split(",")[-1].strip())
 
-        if all([sales >= settings.SALES, started_at >= settings.STARTED_AT, location in settings.COUNTRIES]):
+        if all([
+            sales >= request.parent.parent.filter.sales,
+            year_store_base >= request.parent.parent.filter.year_store_base,
+            location in request.parent.parent.filter.countries
+        ]):
             title = soup.select_one(self.xpath_title).string.strip()
             self.shops_title.append(title)
 
@@ -145,10 +162,10 @@ class ShopsParser(Parser):
                 self.shops.append(
                     Shop(
                         title=title,
-                        started_at=datetime.date(started_at, 1, 1),
+                        year_store_base=datetime.date(year_store_base, 1, 1),
                         sales=sales,
-                        request=request,
-                        location=location
+                        location=location,
+                        url=request.url,
                     )
                 )
             self.items.append(
