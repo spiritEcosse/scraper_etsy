@@ -85,7 +85,8 @@ class ItemsParser(Parser):
     async def post_request(self, request, response):
         soup = await super(ItemsParser, self).post_request(request, response)
 
-        tags = soup.select(self.xpath_tags)
+        tags = tuple(tag for tag in soup.select(self.xpath_tags) if len(tag.string.strip().split()) >= 2)
+
         if len(tags) > request.parent.filter.count_tags:
             data_item = {
                 "h1": soup.select_one(self.xpath_h1).string.strip(),
