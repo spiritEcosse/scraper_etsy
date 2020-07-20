@@ -17,16 +17,22 @@ import ListItemText from '@material-ui/core/ListItemText';
 import InboxIcon from '@material-ui/icons/MoveToInbox';
 import MailIcon from '@material-ui/icons/Mail';
 import styles from "assets/jss/material-dashboard-react/components/sidebarStyle.js";
-import Button from "../../components/CustomButtons/Button";
 import Box from '@material-ui/core/Box';
+import FixedPlugin from "components/FixedPlugin/FixedPlugin.js";
+import bgImage from "assets/img/sidebar-2.jpg";
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 
 const useStyles = makeStyles(styles);
 
 export default function Sidebar(props) {
     const classes = useStyles();
     const theme = useTheme();
-    const { image, switchRoutes } = props;
+    const { switchRoutes } = props;
 
+    const logout = () => {
+        localStorage.removeItem('token')
+        props.history.push('/login')
+    };
     const [open, setOpen] = React.useState(false);
 
     const handleDrawerOpen = () => {
@@ -35,6 +41,24 @@ export default function Sidebar(props) {
 
     const handleDrawerClose = () => {
         setOpen(false);
+    };
+
+    const mainPanel = React.createRef();
+    const [image, setImage] = React.useState(bgImage);
+    const [color, setColor] = React.useState("blue");
+    const [fixedClasses, setFixedClasses] = React.useState("dropdown ");
+    const handleImageClick = image => {
+        setImage(image);
+    };
+    const handleColorClick = color => {
+        setColor(color);
+    };
+    const handleFixedClick = () => {
+        if (fixedClasses === "dropdown") {
+            setFixedClasses("dropdown show");
+        } else {
+            setFixedClasses("dropdown");
+        }
     };
 
     return (
@@ -57,7 +81,16 @@ export default function Sidebar(props) {
                         <MenuIcon />
                     </IconButton>
                     <Box flexGrow={1}/>
-                    <Button color="primary">Logout</Button>
+
+                    <IconButton
+                        color="inherit"
+                        aria-label="logout"
+                        edge="end"
+                        onClick={logout}
+                        className={clsx(classes.menuButton, open && classes.hide)}
+                    >
+                        <ExitToAppIcon />
+                    </IconButton>
                 </Toolbar>
             </AppBar>
             <Drawer
@@ -103,7 +136,17 @@ export default function Sidebar(props) {
                 })}
             >
                 <div className={classes.drawerHeader} />
-                { switchRoutes }
+                {switchRoutes}
+                <div className={classes.mainPanel} ref={mainPanel}>
+                    <FixedPlugin
+                        handleImageClick={handleImageClick}
+                        handleColorClick={handleColorClick}
+                        bgColor={color}
+                        bgImage={image}
+                        handleFixedClick={handleFixedClick}
+                        fixedClasses={fixedClasses}
+                    />
+                </div>
             </main>
         </div>
     );
