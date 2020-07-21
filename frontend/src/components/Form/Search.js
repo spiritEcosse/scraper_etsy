@@ -71,11 +71,10 @@ class SearchForm extends Component {
             errors: {},
             alert: {},
         }
-
-        this.response = ""
     }
 
     componentDidMount() {
+        let response;
         fetch(base_url + 'api/filter/', {
             method : 'GET',
             headers : {
@@ -83,13 +82,15 @@ class SearchForm extends Component {
             }
         })
             .then(res => {
-                this.response = res
+                response = res
                 return res.json();
             })
             .then(res => {
-                if (! this.response.ok ) {
-                    switch (this.response.status) {
+                if (! response.ok ) {
+                    switch (response.status) {
                         case 401:
+                            localStorage.removeItem('token')
+                            this.props.history.push('/login')
                             break;
                         default:
                             break;
@@ -123,6 +124,8 @@ class SearchForm extends Component {
             data.filter.countries = this.state.helper.countries
         }
 
+        let response;
+
         fetch(base_url + 'api/items/', {
             crossDomain : true,
             withCredentials : true,
@@ -134,13 +137,17 @@ class SearchForm extends Component {
             method : 'POST',
             body : JSON.stringify(data)
         })
-            .then(response => {
-                this.response = response
-                return response.json();
+            .then(res => {
+                response = res
+                return res.json();
             })
             .then(json => {
-                    if (! this.response.ok ) {
-                        switch (this.response.status) {
+                    if (! response.ok ) {
+                        switch (response.status) {
+                            case 401:
+                                localStorage.removeItem('token')
+                                this.props.history.push('/login')
+                                break;
                             case 400:
                                 this.setState({errors: json });
                                 break;

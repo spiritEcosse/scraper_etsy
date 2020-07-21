@@ -34,7 +34,6 @@ class Login extends Component {
     if (localStorage.getItem('token')) {
       this.props.history.push('/')
     }
-    this.response = ""
   }
 
   componentDidMount() {
@@ -55,6 +54,7 @@ class Login extends Component {
 
   handleLogin = (e, data) => {
     e.preventDefault();
+    let response;
 
     fetch(base_url + 'api/token/', {
       crossDomain : true,
@@ -66,13 +66,13 @@ class Login extends Component {
       },
       body : JSON.stringify(data)
     })
-        .then(response => {
-          this.response = response
-          return response.json();
+        .then(res => {
+          response = res
+          return res.json();
         })
         .then(json => {
-              if (! this.response.ok ) {
-                switch (this.response.status) {
+              if (! response.ok ) {
+                switch (response.status) {
                   case 401:
                     this.setState({ alert: {message: json.detail, type: "warning"} });
                     break;
