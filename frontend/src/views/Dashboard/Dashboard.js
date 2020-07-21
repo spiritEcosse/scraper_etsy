@@ -194,6 +194,7 @@ class Dashboard extends Component {
                             </Box>
                             <Box>
                               <IconButton
+                                  disabled={ request.ended_at == null }
                                   className={classes.cardCategoryWhite} size="small" aria-label="delete"
                                   onClick={() => this.deleteRequest (request.id)}>
                                 <ClearIcon/>
