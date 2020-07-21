@@ -3,13 +3,13 @@ import json
 from aiohttp.client_exceptions import ClientConnectionError
 from django.conf import settings
 from django.db.models import Prefetch
+from django.db.utils import IntegrityError
 from django.db.utils import OperationalError
 from redis import from_url
 
 from config import celery_app
 from scraper_etsy.items.models import Request, Item, Tag, Shop
 from .parsers import RequestParser, ShopsParser, ItemsParser
-from django.db.utils import IntegrityError
 
 redis_connection = from_url(settings.REDIS_URL)
 
