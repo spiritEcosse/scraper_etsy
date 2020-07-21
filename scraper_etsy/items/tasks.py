@@ -9,13 +9,14 @@ from redis import from_url
 from config import celery_app
 from scraper_etsy.items.models import Request, Item, Tag, Shop
 from .parsers import RequestParser, ShopsParser, ItemsParser
+from django.db.utils import IntegrityError
 
 redis_connection = from_url(settings.REDIS_URL)
 
 
 @celery_app.task(
     bind=True,
-    autoretry_for=(ClientConnectionError, OperationalError, ),
+    autoretry_for=(ClientConnectionError, OperationalError, IntegrityError, ),
     retry_kwargs={"max_retries": settings.MAX_RETRIES}
 )
 def search(self, request_id, limit=None, offset=0):
@@ -64,7 +65,7 @@ def search(self, request_id, limit=None, offset=0):
 
 
 @celery_app.task(
-    autoretry_for=(ClientConnectionError, OperationalError, ),
+    autoretry_for=(ClientConnectionError, OperationalError, IntegrityError, ),
     retry_kwargs={"max_retries": settings.MAX_RETRIES}
 )
 def request_shop(request_id, limit, limit_q, offset):
