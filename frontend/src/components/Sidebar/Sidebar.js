@@ -85,9 +85,8 @@ export default function Sidebar(props) {
                     <IconButton
                         color="inherit"
                         aria-label="logout"
-                        edge="end"
                         onClick={logout}
-                        className={clsx(classes.menuButton, open && classes.hide)}
+                        className={clsx(classes.menuButton)}
                     >
                         <ExitToAppIcon />
                     </IconButton>
