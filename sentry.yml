@@ -1,0 +1,46 @@
+version: '3'
+
+volumes:
+  sentry_redis_volume: {}
+  sentry_postgres_data: {}
+
+services:
+  sentry: &sentry
+    image: sentry
+    env_file:
+      - ./.envs/.production/.sentry
+    depends_on:
+      - sentry_postgres
+      - sentry_redis
+
+  sentry_redis:
+    image: redis:5.0
+    volumes:
+      - sentry_redis_volume:/data
+
+  cron:
+    <<: *sentry
+    command: run cron
+
+  worker:
+    <<: *sentry
+    command: run worker
+
+  sentry_postgres:
+    image: postgres
+    env_file:
+      - ./.envs/.production/.sentry_postgres
+    volumes:
+      - sentry_postgres_data:/var/lib/postgresql/data
+
+  traefik:
+    build:
+      context: .
+      dockerfile: ./compose/production/traefik/Dockerfile
+    image: scraper_etsy_production_traefik
+    depends_on:
+      - django
+    volumes:
+      - production_traefik:/etc/traefik/acme
+    ports:
+      - "0.0.0.0:5602:9000"
