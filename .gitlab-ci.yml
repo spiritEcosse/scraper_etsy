@@ -1,6 +1,7 @@
 stages:
   - lint
   - test
+  - build
 
 variables:
   POSTGRES_USER: 'scraper_etsy'
