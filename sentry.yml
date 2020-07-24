@@ -12,6 +12,8 @@ services:
     depends_on:
       - sentry_postgres
       - sentry_redis
+    ports:
+      - "5602:9000"
 
   sentry_redis:
     image: redis:5.0
@@ -20,10 +22,12 @@ services:
 
   cron:
     <<: *sentry
+    ports: []
     command: run cron
 
   worker:
     <<: *sentry
+    ports: []
     command: run worker
 
   sentry_postgres:
@@ -32,15 +36,3 @@ services:
       - ./.envs/.production/.sentry_postgres
     volumes:
       - sentry_postgres_data:/var/lib/postgresql/data
-
-  traefik:
-    build:
-      context: .
-      dockerfile: ./compose/production/traefik/Dockerfile
-    image: scraper_etsy_production_traefik
-    depends_on:
-      - sentry
-    volumes:
-      - production_traefik:/etc/traefik/acme
-    ports:
-      - "0.0.0.0:5602:9000"
