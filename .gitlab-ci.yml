@@ -48,4 +48,6 @@ build:
     - docker-compose -f production.yml build
     - docker push $IMAGE:web
     - docker push $IMAGE:node
-  only: dev
+  only:
+    refs:
+      - dev

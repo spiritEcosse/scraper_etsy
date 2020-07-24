@@ -39,7 +39,7 @@ services:
       dockerfile: ./compose/production/traefik/Dockerfile
     image: scraper_etsy_production_traefik
     depends_on:
-      - django
+      - sentry
     volumes:
       - production_traefik:/etc/traefik/acme
     ports:
