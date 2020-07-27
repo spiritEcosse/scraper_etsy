@@ -328,3 +328,6 @@ scraper_etsy/media/
 
 
 .ipython/
+.p10k.zsh
+.zshrc
+id_rsa.pub
