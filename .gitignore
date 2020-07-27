@@ -328,6 +328,3 @@ scraper_etsy/media/
 
 
 .ipython/
-.env
-.envs/*
-!.envs/.local/

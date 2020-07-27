@@ -17,6 +17,8 @@ compilemessages:
 	export COMPOSE_FILE=${COMPOSE_FILE} \
 	&& docker-compose exec django ./manage.py compilemessages
 
+deploy:
+
 migrate:
 	export COMPOSE_FILE=${COMPOSE_FILE} \
 	&& docker-compose run --rm django ./manage.py makemigrations \
