@@ -4,9 +4,10 @@ COMPOSE_FILE?=local.yml
 PORT_DB?=5432
 PROJECT?=test
 COMMIT_MESSAGE?=
-REPO=shevchenkoigor/panda
+REPO=shevchenkoigor/scraper_etsy
 REPO_TEST=shevchenkoigor/panda_test
 DOCKER_FILE=compose/local/django/Dockerfile
+DOCKER_PROD_FILE=compose/production/django/Dockerfile
 DOCKER_FILE_TEST=compose/test/django/Dockerfile
 APP?=
 
@@ -18,6 +19,11 @@ compilemessages:
 	&& docker-compose exec django ./manage.py compilemessages
 
 deploy:
+	docker build -t ${REPO}:django -f ${DOCKER_PROD_FILE} .
+	docker push ${REPO}:django
+	docker build -t ${REPO}:node -f ${DOCKER_PROD_FILE} .
+	docker push ${REPO}:node
+	ssh igor@127.0.0.1 bash -c "cd /home/igor/scraper_etsy && docker-compose -f production.yml stop && docker-compose -f production.yml up -d"
 
 migrate:
 	export COMPOSE_FILE=${COMPOSE_FILE} \
