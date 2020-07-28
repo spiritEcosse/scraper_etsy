@@ -29,7 +29,7 @@ services:
     depends_on:
       - django
     ports:
-      - "3000:3000"
+      - "8240:3000"
     command: npm start
 
   postgres:
