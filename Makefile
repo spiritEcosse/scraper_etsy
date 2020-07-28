@@ -19,10 +19,10 @@ compilemessages:
 	&& docker-compose exec django ./manage.py compilemessages
 
 deploy:
-#	docker build -t ${REPO}:django -f ${DOCKER_PROD_FILE} .
-#	docker push ${REPO}:django
-#	docker build -t ${REPO}:node -f ${DOCKER_PROD_FILE} .
-#	docker push ${REPO}:node
+	docker build -t ${REPO}:django -f ${DOCKER_PROD_FILE} .
+	docker push ${REPO}:django
+	docker build -t ${REPO}:node -f compose/production/node/Dockerfile frontend
+	docker push ${REPO}:node
 	ssh -p 2434 igor@127.0.0.1 "\
 		cd scraper_etsy && \
 		rm -f celerybeat.pid && \
