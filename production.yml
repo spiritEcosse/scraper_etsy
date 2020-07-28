@@ -30,9 +30,23 @@ services:
       - ./frontend:/app
       # http://jdlm.info/articles/2016/03/06/lessons-building-node-app-docker.html
       - /app/node_modules
-    ports:
-      - "4021:3000"
     command: npm start
+
+  traefik:
+    build:
+      context: .
+      dockerfile: ./compose/production/traefik/Dockerfile
+    image: scraper_etsy_production_traefik
+    depends_on:
+      - node
+      - flower
+      - postgres
+    volumes:
+      - production_traefik:/etc/traefik/acme
+    ports:
+      - "0.0.0.0:80:3000"
+      - "0.0.0.0:5555:5555"
+      - "0.0.0.0:5432:5432"
 
   postgres:
     build:
@@ -42,8 +56,6 @@ services:
     volumes:
       - production_postgres_data:/var/lib/postgresql/data
       - production_postgres_data_backups:/backups
-    ports:
-    - "7422:5432"
     env_file:
       - ./.envs/.production/.postgres
 
@@ -55,18 +67,14 @@ services:
   celeryworker:
     <<: *django
     image: scraper_etsy_production_celeryworker
-    ports: []
     command: /start-celeryworker
 
   celerybeat:
     <<: *django
     image: scraper_etsy_production_celerybeat
-    ports: []
     command: /start-celerybeat
 
   flower:
     <<: *django
     image: scraper_etsy_production_flower
-    ports:
-      - "6552:5555"
     command: /start-flower
