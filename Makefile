@@ -26,9 +26,9 @@ deploy:
 	ssh -p 2434 igor@127.0.0.1 "\
 		cd scraper_etsy && \
 		rm -f celerybeat.pid && \
-		sudo docker-compose -f local.yml stop && \
+		sudo docker-compose -f production.yml stop && \
 		git pull && \
-		sudo docker-compose -f local.yml up -d"
+		sudo docker-compose -f production.yml up -d"
 
 migrate:
 	export COMPOSE_FILE=${COMPOSE_FILE} \
