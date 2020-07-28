@@ -28,6 +28,10 @@ services:
     image: shevchenkoigor/scraper_etsy:node
     depends_on:
       - django
+    volumes:
+      - ./frontend:/app
+      # http://jdlm.info/articles/2016/03/06/lessons-building-node-app-docker.html
+      - /app/node_modules
     ports:
       - "80:3000"
     command: npm start
