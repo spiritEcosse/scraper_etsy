@@ -3,7 +3,8 @@ version: '3'
 volumes:
   production_postgres_data: {}
   production_postgres_data_backups: {}
-  redis_volume: {}
+  production_redis_volume: {}
+  production_traefik: {}
 
 services:
   django: &django
@@ -62,7 +63,7 @@ services:
   redis:
     image: redis:5.0
     volumes:
-      - redis_volume:/data
+      - production_redis_volume:/data
 
   celeryworker:
     <<: *django
