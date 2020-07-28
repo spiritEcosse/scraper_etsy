@@ -4,7 +4,6 @@ services:
   wr:
     build: .
     image: shevchenkoigor/scraper_etsy:wr
-#    privileged: true
     ports:
       - "24:22"
     volumes:
