@@ -46,6 +46,8 @@ RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
 RUN locale-gen en_US.UTF-8
 ENV LC_CTYPE 'en_US.UTF-8'
 
+RUN mkdir -p /var/lib/docker/volumes
+
 RUN rm -rf /run/nologin
 # Run openssh daemon
 CMD	 ["/usr/sbin/sshd", "-D"]
