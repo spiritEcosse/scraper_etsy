@@ -9,7 +9,6 @@ import CardHeader from "components/Card/CardHeader.js";
 import CardBody from "components/Card/CardBody.js";
 import CardFooter from "components/Card/CardFooter.js";
 import TextField from '@material-ui/core/TextField';
-import {base_url} from "variables/general.js";
 import SnackbarContent from "../Snackbar/SnackbarContent";
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -75,7 +74,7 @@ class SearchForm extends Component {
 
     componentDidMount() {
         let response;
-        fetch(base_url + 'api/filter/', {
+        fetch(process.env.REACT_APP_BASE_URL + 'api/filter/', {
             method : 'GET',
             headers : {
                 Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -126,7 +125,7 @@ class SearchForm extends Component {
 
         let response;
 
-        fetch(base_url + 'api/items/', {
+        fetch(process.env.REACT_APP_BASE_URL + 'api/items/', {
             crossDomain : true,
             withCredentials : true,
             async : true,

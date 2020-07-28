@@ -26,7 +26,7 @@ import Cloud from "@material-ui/icons/Cloud";
 import Tasks from "components/Tasks/Tasks.js";
 import SearchForm from "components/Form/Search.js";
 import CustomTabs from "components/CustomTabs/CustomTabs.js";
-import {base_url, bugs, server, website} from "variables/general.js";
+import {bugs, server, website} from "variables/general.js";
 import styles from "assets/jss/material-dashboard-react/views/dashboardStyle.js";
 import SnackbarContent from "../../components/Snackbar/SnackbarContent";
 import Button from "../../components/CustomButtons/Button";
@@ -41,7 +41,7 @@ class Dashboard extends Component {
         this.state = {
             requests: []
         }
-        this.nextUrl = base_url + 'api/items/'
+        this.nextUrl = process.env.REACT_APP_BASE_URL + 'api/items/'
         this.setRequests = this.setRequests.bind(this);
     }
 
@@ -101,7 +101,7 @@ class Dashboard extends Component {
     updateRequest = (id) => {
         let response;
 
-        fetch(base_url + 'api/items/' + id + "/", {
+        fetch(process.env.REACT_APP_BASE_URL + 'api/items/' + id + "/", {
             method : 'GET',
             headers : {
                 Authorization : `Bearer ${localStorage.getItem('token')}`
@@ -143,7 +143,7 @@ class Dashboard extends Component {
     }
 
     deleteRequest = id => {
-        fetch(base_url + 'api/items/' + id + "/", {
+        fetch(process.env.REACT_APP_BASE_URL + 'api/items/' + id + "/", {
             method : 'DELETE',
             headers : {
                 Authorization : `Bearer ${localStorage.getItem('token')}`

@@ -170,6 +170,11 @@ sentry_sdk.init(
 
 # ------------------------------------------------------------------------------
 
+# we whitelist localhost:3000 because that's where frontend will be served
+CORS_ORIGIN_WHITELIST = (
+    "http://127.0.0.1:80/",
+)
+
 COUNTDOWN = 5
 COUNTDOWN_FIRST_RUN = 5
 MAX_RETRIES = 100

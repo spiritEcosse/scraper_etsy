@@ -1,7 +1,6 @@
 import React, {Component} from "react";
 import "assets/css/bootstrap.min.css";
 import "assets/scss/now-ui-kit.scss?v=1.4.0";
-import {base_url} from "variables/general.js";
 
 import {
   Button,
@@ -56,7 +55,7 @@ class Login extends Component {
     e.preventDefault();
     let response;
 
-    fetch(base_url + 'api/token/', {
+    fetch(process.env.REACT_APP_BASE_URL + 'api/token/', {
       crossDomain : true,
       withCredentials : true,
       async : true,

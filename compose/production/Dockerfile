@@ -36,8 +36,8 @@ RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /home/$USER
 RUN git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
 RUN git clone --single-branch --branch dev https://github.com/spiritEcosse/scraper_etsy.git
 USER root
-RUN unset USER
 WORKDIR /home/$USER/scraper_etsy
+RUN unset USER
 
 # Set correct locale
 RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \

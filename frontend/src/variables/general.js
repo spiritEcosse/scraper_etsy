@@ -17,12 +17,10 @@ var server = [
   "Flooded: One year later, assessing what was lost and what was found when a ravaging rain swept through metro Detroit",
   'Sign contract for "What are conference organizers afraid of?"'
 ];
-var base_url = "http://127.0.0.1:8003/";
 
 module.exports = {
   // these 3 are used to create the tasks lists in TasksCard - Dashboard view
   bugs,
   website,
   server,
-  base_url,
 };
