@@ -114,9 +114,6 @@ rm_volumes:
 
 rm_hard: stop_rm rm_volumes
 
-deploy:
-	docker-compose -f ${COMPOSE_FILE} up --scale initial-data=0
-
 rm_image_test:
 	docker image rm -f ${REPO}:`git rev-parse --abbrev-ref HEAD`_test
 
