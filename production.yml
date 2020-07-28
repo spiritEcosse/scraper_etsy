@@ -25,7 +25,7 @@ services:
     build:
       context: ./frontend
       dockerfile: ../compose/local/node/Dockerfile
-    image: shevchenkoigor/scraper_etsy:node
+#    image: shevchenkoigor/scraper_etsy:node
     depends_on:
       - django
     volumes:
