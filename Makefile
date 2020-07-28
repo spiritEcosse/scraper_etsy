@@ -23,7 +23,8 @@ deploy:
 	docker push ${REPO}:django
 	docker build -t ${REPO}:node -f ${DOCKER_PROD_FILE} .
 	docker push ${REPO}:node
-	ssh -p 2434 igor@127.0.0.1 zsh -c "\
+	ssh -p 2434 igor@127.0.0.1 "\
+		cd scraper_etsy && \
 		sudo docker-compose -f production.yml stop && \
 		git pull && \
 		sudo docker-compose -f production.yml up -d"

@@ -22,8 +22,8 @@ RUN chown $USER:$USER -R /home/$USER/.ssh && \
     chmod 600 /home/$USER/.ssh/authorized_keys
 
 USER $USER
-WORKDIR /home/$USER/
-RUN git clone https://aur.archlinux.org/yay.git && \
+RUN cd /home/$USER/ &&\
+    git clone https://aur.archlinux.org/yay.git && \
     cd yay && \
     makepkg -sri --needed --noconfirm && \
     cd .. && \
@@ -34,7 +34,7 @@ COPY .zshrc /home/$USER/
 COPY .p10k.zsh /home/$USER/
 RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /home/$USER/.oh-my-zsh/themes/powerlevel10k
 RUN git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
-RUN git clone --single-branch --branch dev https://github.com/spiritEcosse/scraper_etsy.git
+RUN cd /home/$USER/ && git clone --single-branch --branch dev https://github.com/spiritEcosse/scraper_etsy.git
 USER root
 WORKDIR /home/$USER/scraper_etsy
 RUN unset USER
