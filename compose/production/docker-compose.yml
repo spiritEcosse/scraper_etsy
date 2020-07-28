@@ -7,3 +7,5 @@ services:
 #    privileged: true
     ports:
       - "24:22"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

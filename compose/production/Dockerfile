@@ -33,6 +33,8 @@ RUN yay -S --needed --noconfirm nerd-fonts-source-code-pro
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 COPY .zshrc /home/$USER/
 COPY .p10k.zsh /home/$USER/
+RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /home/$USER/.oh-my-zsh/themes/powerlevel10k
+RUN git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
 RUN git clone --single-branch --branch dev https://github.com/spiritEcosse/scraper_etsy.git
 USER root
 
@@ -43,8 +45,7 @@ RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
 RUN locale-gen en_US.UTF-8
 ENV LC_CTYPE 'en_US.UTF-8'
 
-#RUN git clone git@github.com:spiritEcosse/scraper_etsy.git
 RUN rm -rf /run/nologin
 # Run openssh daemon
 CMD	 ["/usr/sbin/sshd", "-D"]
-ENTRYPOINT ["run.sh"]
+#ENTRYPOINT ["run.sh"]

@@ -13,7 +13,7 @@ services:
       - sentry_postgres
       - sentry_redis
     ports:
-      - "5602:9000"
+      - 9000
 
   sentry_redis:
     image: redis:5.0

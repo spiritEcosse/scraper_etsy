@@ -331,3 +331,4 @@ scraper_etsy/media/
 .p10k.zsh
 .zshrc
 id_rsa.pub
+**/.log/
