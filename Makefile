@@ -23,11 +23,10 @@ deploy:
 	docker push ${REPO}:django
 	docker build -t ${REPO}:node -f ${DOCKER_PROD_FILE} .
 	docker push ${REPO}:node
-	ssh -p 2434 igor@127.0.0.1 bash -c "\
-		cd /home/igor/scraper_etsy && \
-		docker-compose -f production.yml stop && \
+	ssh -p 2434 igor@127.0.0.1 zsh -c "\
+		sudo docker-compose -f production.yml stop && \
 		git pull && \
-		docker-compose -f production.yml up -d"
+		sudo docker-compose -f production.yml up -d"
 
 migrate:
 	export COMPOSE_FILE=${COMPOSE_FILE} \
