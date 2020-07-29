@@ -30,7 +30,7 @@ services:
       - django
     ports:
       - "80:3000"
-    command: npm start
+    command: serve -s build -l 80
 
   postgres:
     build:

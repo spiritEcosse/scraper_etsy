@@ -21,6 +21,7 @@ compilemessages:
 deploy:
 	docker build -t ${REPO}:django -f ${DOCKER_PROD_FILE} .
 	docker push ${REPO}:django
+	cd frontend && npm run build && cd ../
 	docker build -t ${REPO}:node -f compose/production/node/Dockerfile frontend
 	docker push ${REPO}:node
 	ssh -p 2434 igor@127.0.0.1 "\
