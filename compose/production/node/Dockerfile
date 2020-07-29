@@ -9,3 +9,4 @@ RUN npm install && npm cache clean --force
 ENV PATH ./node_modules/.bin/:$PATH
 
 COPY . .
+RUN npm run build
