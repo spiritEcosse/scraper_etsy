@@ -36,8 +36,7 @@ RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /home/$USER
 RUN git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
 RUN cd /home/$USER/ && git clone --single-branch --branch dev https://github.com/spiritEcosse/scraper_etsy.git
 USER root
-WORKDIR /home/$USER/scraper_etsy
-RUN unset USER
+WORKDIR $PROJ
 
 # Set correct locale
 RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
@@ -46,9 +45,11 @@ RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
 RUN locale-gen en_US.UTF-8
 ENV LC_CTYPE 'en_US.UTF-8'
 
-RUN mkdir -p /var/lib/docker/volumes
-
 RUN rm -rf /run/nologin
-# Run openssh daemon
-CMD	 ["/usr/sbin/sshd", "-D"]
-#ENTRYPOINT ["run.sh"]
+
+COPY run.sh /home/$USER/
+RUN chmod +x /home/$USER/run.sh
+RUN chown igor:igor /home/$USER/run.sh
+
+ENTRYPOINT ["/home/igor/run.sh"]
+RUN unset USER

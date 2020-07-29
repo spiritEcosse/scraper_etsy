@@ -23,9 +23,10 @@ deploy:
 	docker push ${REPO}:django
 	docker build -t ${REPO}:node -f compose/production/node/Dockerfile frontend
 	docker push ${REPO}:node
-	ssh -p 2434 igor@127.0.0.1 "\
+	ssh igor@192.168.1.182 "\
 		cd scraper_etsy && \
 		rm -f celerybeat.pid && \
+		sudo docker-compose -f production.yml run --rm django rm -f celerybeat.pid && \
 		sudo docker-compose -f production.yml stop && \
 		git pull && \
 		sudo docker-compose -f production.yml up -d"

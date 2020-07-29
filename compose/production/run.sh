@@ -1,5 +1,6 @@
-#!/bin/zsh
+#!/bin/sh
 
-cd scraper_etsy &&
-docker-compose -f sentry.yml up -d &&
-docker-compose -f production.yml up -d &&
+sudo docker-compose -f sentry.yml up -d &&
+sudo docker-compose -f production.yml up -d
+
+/usr/sbin/sshd -D
