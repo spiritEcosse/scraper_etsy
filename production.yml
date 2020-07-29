@@ -29,7 +29,7 @@ services:
     depends_on:
       - django
     ports:
-      - "80:3000"
+      - "80:80"
     command: serve -s build -l 80
 
   postgres:
