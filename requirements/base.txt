@@ -31,3 +31,5 @@ djangorestframework==3.11.0  # https://github.com/encode/django-rest-framework
 # Country data
 django-countries==6.1.2  # https://github.com/SmileyChris/django-countries
 us==2.0.2 # https://pypi.org/project/us/
+
+ipython==7.16.1 # https://pypi.org/project/ipython/

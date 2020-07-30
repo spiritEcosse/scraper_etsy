@@ -47,7 +47,8 @@ RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
 RUN locale-gen en_US.UTF-8
 ENV LC_CTYPE 'en_US.UTF-8'
 
-#RUN sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/" /etc/ssh/sshd_config
+RUN sed -i "s/PasswordAuthentication yes/PasswordAuthentication no/" /etc/ssh/sshd_config
+RUN sed -i '/PasswordAuthentication no/s/^#//g' /etc/ssh/sshd_config
 RUN rm -rf /run/nologin
 
 COPY run.sh $HOME_USER/

@@ -174,7 +174,7 @@ sentry_sdk.init(
 CORS_ORIGIN_WHITELIST = (
     "http://localhost",
     "http://192.168.1.182",
-    "http://176.36.12.87",
+    "http://176.36.12.87:3425",
 )
 
 COUNTDOWN = 5

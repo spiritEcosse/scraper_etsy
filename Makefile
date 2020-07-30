@@ -25,7 +25,6 @@ deploy:
 	docker push ${REPO}:node
 	ssh igor@192.168.1.182 "\
 		cd scraper_etsy && \
-		rm -f celerybeat.pid && \
 		sudo docker-compose -f production.yml run --rm django rm -f celerybeat.pid && \
 		sudo docker-compose -f production.yml stop && \
 		git pull && \
