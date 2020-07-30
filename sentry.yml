@@ -9,6 +9,8 @@ services:
     image: sentry
     env_file:
       - ./.envs/.production/.sentry
+    environment:
+      - SENTRY_SINGLE_ORGANIZATION=false
     depends_on:
       - sentry_postgres
       - sentry_redis
