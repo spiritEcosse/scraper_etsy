@@ -1,7 +1,8 @@
 FROM	 archlinux:latest
 
 ENV USER="igor"
-ENV PROJ="/home/$USER/scraper_etsy"
+ENV HOME_USER="/home/$USER"
+ENV PROJ="$HOME_USER/scraper_etsy"
 MAINTAINER $USER
 
 # Install pkgs
@@ -14,27 +15,28 @@ RUN sed -i "/# %wheel ALL=(ALL) ALL/s/^#//" /etc/sudoers
 RUN sed -i "/# %wheel ALL=(ALL) NOPASSWD: ALL/s/^#//" /etc/sudoers
 
 RUN useradd -G wheel -ms /bin/zsh $USER && \
-    mkdir /home/$USER/.ssh && \
-    chmod 700 /home/$USER/.ssh
-COPY id_rsa.pub /home/$USER/.ssh/authorized_keys
+    mkdir $HOME_USER/.ssh && \
+    chmod 700 $HOME_USER/.ssh
+COPY id_rsa.pub $HOME_USER/.ssh/authorized_keys
 RUN /usr/bin/ssh-keygen -A
-RUN chown $USER:$USER -R /home/$USER/.ssh && \
-    chmod 600 /home/$USER/.ssh/authorized_keys
+RUN chown $USER:$USER -R $HOME_USER/.ssh && \
+    chmod 600 $HOME_USER/.ssh/authorized_keys
 
 USER $USER
-RUN cd /home/$USER/ &&\
+RUN cd $HOME_USER/ &&\
     git clone https://aur.archlinux.org/yay.git && \
     cd yay && \
     makepkg -sri --needed --noconfirm && \
     cd .. && \
     rm -rf yay
-RUN yay -S --needed --noconfirm nerd-fonts-source-code-pro
+RUN yay -Sy --needed --noconfirm nerd-fonts-source-code-pro
+RUN yay -Sy --needed --noconfirm micro
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-COPY .zshrc /home/$USER/
-COPY .p10k.zsh /home/$USER/
-RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /home/$USER/.oh-my-zsh/themes/powerlevel10k
+COPY .zshrc $HOME_USER/
+COPY .p10k.zsh $HOME_USER/
+RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $HOME_USER/.oh-my-zsh/themes/powerlevel10k
 RUN git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
-RUN cd /home/$USER/ && git clone --single-branch --branch dev https://github.com/spiritEcosse/scraper_etsy.git
+RUN cd $HOME_USER/ && git clone --single-branch --branch dev https://github.com/spiritEcosse/scraper_etsy.git
 USER root
 WORKDIR $PROJ
 
@@ -45,11 +47,12 @@ RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
 RUN locale-gen en_US.UTF-8
 ENV LC_CTYPE 'en_US.UTF-8'
 
+#RUN sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/" /etc/ssh/sshd_config
 RUN rm -rf /run/nologin
 
-COPY run.sh /home/$USER/
-RUN chmod +x /home/$USER/run.sh
-RUN chown igor:igor /home/$USER/run.sh
+COPY run.sh $HOME_USER/
+RUN chmod +x $HOME_USER/run.sh
+RUN chown igor:igor $HOME_USER/run.sh
 
 ENTRYPOINT ["/home/igor/run.sh"]
 RUN unset USER

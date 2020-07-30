@@ -4,7 +4,7 @@
 DJANGO_SETTINGS_MODULE=config.settings.production
 DJANGO_SECRET_KEY=AwQ8G8lN6oqvP6K0faCV3Ub03Z4ZSUk1Wq8YgWXK6vn5WGTYyPW2JxzCoZfm83PN
 DJANGO_ADMIN_URL=BdoEKjHT1VbtllsljZHpCEynhXI9g4LW/
-DJANGO_ALLOWED_HOSTS=.localhost,node
+DJANGO_ALLOWED_HOSTS=.localhost,node,192.168.1.182,176.36.12.87
 
 # Security
 # ------------------------------------------------------------------------------
