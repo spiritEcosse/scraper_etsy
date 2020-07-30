@@ -123,6 +123,12 @@ class SearchForm extends Component {
             data.filter.countries = this.state.helper.countries
         }
 
+        data.filter.countries = data.filter.countries.map(country_name =>
+            this.state.countries.find(country => {
+                return country.name === country_name
+            }).code
+        )
+
         let response;
 
         fetch(process.env.REACT_APP_BASE_URL + 'api/items/', {
