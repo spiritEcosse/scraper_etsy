@@ -2,3 +2,5 @@
 !.coveragerc
 !.env
 !.pylintrc
+.ipython
+**/node_modules

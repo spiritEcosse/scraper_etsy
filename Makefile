@@ -57,8 +57,7 @@ stop_rm_up:
 
 up:
 	export COMPOSE_FILE=${COMPOSE_FILE} \
-	&& docker-compose stop \
-	&& docker-compose rm -f node \
+	&& docker-compose down \
 	&& docker-compose up
 
 up_node:
