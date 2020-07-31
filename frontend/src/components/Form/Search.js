@@ -319,7 +319,6 @@ class SearchForm extends Component {
                                                 ))}
                                             </Select>
                                             <FormHelperText>{this.state.errors.filter && this.state.errors.filter.countries ? this.state.errors.filter.countries : null}</FormHelperText>
-                                            <FormHelperText>Default : {this.state.helper.countries.join(', ')}</FormHelperText>
                                         </FormControl>
                                     </GridContainer>
                                 </CardBody>

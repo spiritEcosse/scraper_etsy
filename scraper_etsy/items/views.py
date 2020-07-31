@@ -34,8 +34,7 @@ class FilterView(viewsets.views.APIView):
     def get(request):
         data = {
             "filter": {
-                'countries':
-                    [country.name for country in countries if country.code in settings.COUNTRIES],
+                'countries': [],
                 'limit': settings.LIMIT,
                 'count_tags': settings.COUNT_TAGS,
                 'sales': settings.SALES,

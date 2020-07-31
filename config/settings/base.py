@@ -4,6 +4,8 @@ Base settings to build other settings files upon.
 from pathlib import Path
 import os
 import environ
+from datetime import timedelta
+
 
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # scraper_etsy/
@@ -321,3 +323,38 @@ JWT_AUTH = {
 DATETIME_FORMAT = [
     '%Y-%m-%d %H:%M:%S'
 ]
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+
+    'ALGORITHM': 'HS256',
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+
+    'JTI_CLAIM': 'jti',
+
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+}
+
+COUNTDOWN = 5
+COUNTDOWN_FIRST_RUN = 5
+MAX_RETRIES = 100
+LIMIT = 4 * 16
+COUNT_TAGS = 10
+SALES = 1000
+YEAR_STORE_BASE = 2016
+COUNTRIES = []
+MAX_ON_PAGE = 4 * 16
