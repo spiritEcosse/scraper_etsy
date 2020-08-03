@@ -6,14 +6,14 @@ import re
 import aiohttp
 import async_timeout
 import us
+from redis import StrictRedis
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django_countries import countries
-from redis import from_url
 
 from scraper_etsy.items.models import Request, Item, Shop
 
-redis_connection = from_url(settings.REDIS_URL)
+redis_connection = StrictRedis.from_url(settings.REDIS_URL)
 
 
 class Parser:
@@ -145,16 +145,20 @@ class ShopsParser(Parser):
             sales = sales.split("Sales")[0].strip()
             sales = int("".join(sales.split(",")))
 
+        matchers = [
+            sales >= request.parent.parent.filter.sales,
+            year_store_base >= request.parent.parent.filter.year_store_base
+        ]
+
         location = soup.select_one(self.xpath_location)
 
         if location:
             location = self.find_location(location.string.split(",")[-1].strip())
 
-        if all([
-            sales >= request.parent.parent.filter.sales,
-            year_store_base >= request.parent.parent.filter.year_store_base,
-            location in request.parent.parent.filter.countries
-        ]):
+        if request.parent.parent.filter.countries:
+            matchers.append(location in request.parent.parent.filter.countries)
+
+        if all(matchers):
             title = soup.select_one(self.xpath_title).string.strip()
             self.shops_title.append(title)
 

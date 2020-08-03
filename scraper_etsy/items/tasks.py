@@ -1,17 +1,17 @@
 import json
 
 from aiohttp.client_exceptions import ClientConnectionError
+from redis import StrictRedis
 from django.conf import settings
 from django.db.models import Prefetch
 from django.db.utils import IntegrityError
 from django.db.utils import OperationalError
-from redis import from_url
 
 from config import celery_app
 from scraper_etsy.items.models import Request, Item, Tag, Shop
 from .parsers import RequestParser, ShopsParser, ItemsParser
 
-redis_connection = from_url(settings.REDIS_URL)
+redis_connection = StrictRedis.from_url(settings.REDIS_URL)
 
 
 @celery_app.task(
@@ -44,7 +44,9 @@ def search(self, request_id, limit=None, offset=0):
     Request.objects.bulk_create(parser.shop_requests)
 
     if parser.shop_requests:
-        request_shop.delay(request_id, limit, len(parser.shop_requests), offset + limit)
+        request_shop.s(request_id, limit, len(parser.shop_requests), offset + limit).apply_async(
+            countdown=settings.COUNTDOWN_FIRST_RUN
+        )
     elif limit + offset <= settings.MAX_ON_PAGE:
         next_limit = limit - len(parser.shop_requests)
         if next_limit:
@@ -94,10 +96,8 @@ def request_shop(request_id, limit, limit_q, offset):
 
     next_limit = limit - len(parser.items)
     if next_limit and offset < settings.MAX_ON_PAGE:
-        search.delay(
-            request_id,
-            limit=next_limit,
-            offset=offset
+        search.s(request_id, next_limit, offset + limit).apply_async(
+            countdown=settings.COUNTDOWN_FIRST_RUN
         )
     else:
         request.says_done()

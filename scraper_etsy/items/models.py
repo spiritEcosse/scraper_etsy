@@ -103,7 +103,7 @@ class Shop(models.Model):
     title = models.CharField(verbose_name=_("Title"), max_length=200, unique=True)
     year_store_base = models.DateField(verbose_name=_("Shop opening date"))
     sales = models.IntegerField(verbose_name=_("Total sales"))
-    location = CountryField()
+    location = CountryField(null=True)
     url = models.URLField(verbose_name=_("Url"), max_length=1000)  # View makes preview this url (get image)
 
     def __str__(self):
