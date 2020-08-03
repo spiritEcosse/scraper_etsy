@@ -29,7 +29,7 @@ class Filter(models.Model):
     )
     sales = models.PositiveIntegerField(
         verbose_name=_("Count of sales"),
-        validators=(MinValueValidator(1), ),
+        validators=(MinValueValidator(0), ),
         default=settings.SALES
     )
     year_store_base = models.PositiveIntegerField(
