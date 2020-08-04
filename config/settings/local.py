@@ -12,7 +12,7 @@ SECRET_KEY = env(
     default="iwf1rP1JOCuFqUjzfqcWoPxjDZ6Ok7nuFshFDKEk1y6zjxmUq4lciKRJbZbOuVnK",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "192.168.1.182"]
 
 # CACHES
 # ------------------------------------------------------------------------------
@@ -70,4 +70,5 @@ CELERY_TASK_EAGER_PROPAGATES = True
 # we whitelist localhost:3000 because that's where frontend will be served
 CORS_ORIGIN_WHITELIST = (
     "http://127.0.0.1:3000",
+    "http://192.168.1.162:3000",
 )

@@ -27,6 +27,7 @@ deploy:
 		cd scraper_etsy && \
 		sudo docker-compose -f production.yml run --rm django rm -f celerybeat.pid && \
 		sudo docker-compose -f production.yml stop && \
+		sudo docker-compose -f production.yml rm && \
 		sudo docker pull shevchenkoigor/scraper_etsy:node && \
 		sudo docker pull shevchenkoigor/scraper_etsy:django && \
 		git pull && \

@@ -1,6 +1,7 @@
 import json
 
 from aiohttp.client_exceptions import ClientConnectionError
+from celery.exceptions import SoftTimeLimitExceeded
 from redis import StrictRedis
 from django.conf import settings
 from django.db.models import Prefetch
@@ -16,7 +17,7 @@ redis_connection = StrictRedis.from_url(settings.REDIS_URL)
 
 @celery_app.task(
     bind=True,
-    autoretry_for=(ClientConnectionError, OperationalError, IntegrityError, ),
+    autoretry_for=(ClientConnectionError, OperationalError, IntegrityError, SoftTimeLimitExceeded, ),
     retry_kwargs={"max_retries": settings.MAX_RETRIES}
 )
 def search(self, request_id, limit=None, offset=0):
@@ -67,7 +68,7 @@ def search(self, request_id, limit=None, offset=0):
 
 
 @celery_app.task(
-    autoretry_for=(ClientConnectionError, OperationalError, IntegrityError, ),
+    autoretry_for=(ClientConnectionError, OperationalError, IntegrityError, SoftTimeLimitExceeded, ),
     retry_kwargs={"max_retries": settings.MAX_RETRIES}
 )
 def request_shop(request_id, limit, limit_q, offset):
