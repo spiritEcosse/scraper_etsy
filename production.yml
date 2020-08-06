@@ -7,6 +7,9 @@ volumes:
 
 services:
   django: &django
+    build:
+      context: .
+      dockerfile: ./compose/production/django/Dockerfile
     image: shevchenkoigor/scraper_etsy:django
     depends_on:
       - postgres
@@ -19,6 +22,9 @@ services:
     command: /start
 
   node:
+    build:
+      context: ./frontend
+      dockerfile: ../compose/production/node/Dockerfile
     image: shevchenkoigor/scraper_etsy:node
     depends_on:
       - django

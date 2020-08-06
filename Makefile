@@ -19,19 +19,12 @@ compilemessages:
 	&& docker-compose exec django ./manage.py compilemessages
 
 deploy:
-	docker build -t ${REPO}:django -f ${DOCKER_PROD_FILE} .
-	docker push ${REPO}:django
-	docker build -t ${REPO}:node -f compose/production/node/Dockerfile frontend
-	docker push ${REPO}:node
 	ssh igor@192.168.1.182 "\
 		cd scraper_etsy && \
 		sudo docker-compose -f production.yml run --rm django rm -f celerybeat.pid && \
 		sudo docker-compose -f production.yml stop && \
-		sudo docker-compose -f production.yml rm && \
-		sudo docker pull shevchenkoigor/scraper_etsy:node && \
-		sudo docker pull shevchenkoigor/scraper_etsy:django && \
 		git pull && \
-		sudo docker-compose -f production.yml up -d"
+		sudo docker-compose -f production.yml up --build -d"
 
 migrate:
 	export COMPOSE_FILE=${COMPOSE_FILE} \
