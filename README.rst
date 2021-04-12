@@ -14,6 +14,12 @@ Scraper of etsy
 :License: GPLv3
 
 
+Show Preview : download page and parse it
+--------
+
+![](preview.gif)
+
+
 Settings
 --------
 
