@@ -17,8 +17,7 @@ Scraper of etsy
 Show Preview : download page and parse it
 --------
 
-![preview](preview.gif)
-
+!(image)[preview.gif]
 
 Settings
 --------
