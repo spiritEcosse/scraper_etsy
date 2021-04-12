@@ -139,7 +139,6 @@ class ShopsParser(Parser):
     async def post_request(self, request, response):
         soup = await super(ShopsParser, self).post_request(request, response)
 
-        year_store_base = int(soup.select_one(self.xpath_year_store_base).string.split("since")[-1].strip())
         sales = soup.select_one(self.xpath_sales).find(string=re.compile("Sales")) or 0
         if sales:
             sales = sales.split("Sales")[0].strip()
@@ -147,8 +146,12 @@ class ShopsParser(Parser):
 
         matchers = [
             sales >= request.parent.parent.filter.sales,
-            year_store_base >= request.parent.parent.filter.year_store_base
         ]
+
+        year_store_base = soup.select_one(self.xpath_year_store_base)
+        if year_store_base:
+            year_store_base = int(year_store_base.string.split("since")[-1].strip())
+            matchers.append(year_store_base >= request.parent.parent.filter.year_store_base)
 
         location = soup.select_one(self.xpath_location)
 
@@ -166,7 +169,7 @@ class ShopsParser(Parser):
                 self.shops.append(
                     Shop(
                         title=title,
-                        year_store_base=datetime.date(year_store_base, 1, 1),
+                        year_store_base=datetime.date(year_store_base, 1, 1) if year_store_base else None,
                         sales=sales,
                         location=location,
                         url=request.url,

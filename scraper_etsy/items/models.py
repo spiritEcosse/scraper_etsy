@@ -35,7 +35,7 @@ class Filter(models.Model):
     year_store_base = models.PositiveIntegerField(
         verbose_name=_("Year store base"),
         validators=(MinValueValidator(1970), validate_year, ),
-        default=settings.YEAR_STORE_BASE
+        null=True
     )
     countries = CountryField(multiple=True, default=settings.COUNTRIES)
 
@@ -101,7 +101,7 @@ class Request(models.Model):
 
 class Shop(models.Model):
     title = models.CharField(verbose_name=_("Title"), max_length=200, unique=True)
-    year_store_base = models.DateField(verbose_name=_("Shop opening date"))
+    year_store_base = models.DateField(verbose_name=_("Shop opening date"), null=True)
     sales = models.IntegerField(verbose_name=_("Total sales"))
     location = CountryField(null=True)
     url = models.URLField(verbose_name=_("Url"), max_length=1000)  # View makes preview this url (get image)

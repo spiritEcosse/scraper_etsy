@@ -286,12 +286,11 @@ class SearchForm extends Component {
                                                 id="year_store_base"
                                                 label="Year store base"
                                                 name="year_store_base"
-                                                value={ this.state.filter.year_store_base }
+                                                // value={ this.state.filter.year_store_base }
                                                 helperText={ this.state.errors.filter && this.state.errors.filter.year_store_base ? this.state.errors.filter.year_store_base : null}
                                                 error={ this.state.errors.filter && !!this.state.errors.filter.year_store_base }
                                                 onChange={ this.handleFilterChange }
                                             />
-                                            <FormHelperText>Default : { this.state.helper.year_store_base }</FormHelperText>
                                         </GridItem>
                                         <FormControl
                                             margin="normal"
