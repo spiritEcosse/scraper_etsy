@@ -1,0 +1,40 @@
+version: '3'
+
+volumes:
+  sentry_redis_volume: {}
+  sentry_postgres_data: {}
+
+services:
+  sentry: &sentry
+    image: sentry
+    env_file:
+      - ./.envs/.production/.sentry
+    environment:
+      - SENTRY_SINGLE_ORGANIZATION=false
+    depends_on:
+      - sentry_postgres
+      - sentry_redis
+    ports:
+      - "9000:9000"
+
+  sentry_redis:
+    image: redis:5.0
+    volumes:
+      - sentry_redis_volume:/data
+
+  cron:
+    <<: *sentry
+    ports: []
+    command: run cron
+
+  worker:
+    <<: *sentry
+    ports: []
+    command: run worker
+
+  sentry_postgres:
+    image: postgres
+    env_file:
+      - ./.envs/.production/.sentry_postgres
+    volumes:
+      - sentry_postgres_data:/var/lib/postgresql/data

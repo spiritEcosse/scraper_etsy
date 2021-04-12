@@ -40,9 +40,9 @@ CACHES = {
 # SECURITY
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-proxy-ssl-header
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-ssl-redirect
-SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=True)
+SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=False)
 # https://docs.djangoproject.com/en/dev/ref/settings/#session-cookie-secure
 SESSION_COOKIE_SECURE = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#csrf-cookie-secure
@@ -165,7 +165,16 @@ sentry_logging = LoggingIntegration(
 sentry_sdk.init(
     dsn=SENTRY_DSN,
     integrations=[sentry_logging, DjangoIntegration(), CeleryIntegration()],
+    send_default_pii=True,
 )
 
-# Your stuff...
 # ------------------------------------------------------------------------------
+
+# we whitelist localhost because that's where frontend will be served
+CORS_ORIGIN_WHITELIST = (
+    "http://localhost",
+    "http://192.168.1.182",
+    "http://176.36.12.87:3425",
+)
+
+SIMPLE_JWT['SIGNING_KEY'] = SECRET_KEY

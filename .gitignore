@@ -328,6 +328,7 @@ scraper_etsy/media/
 
 
 .ipython/
-.env
-.envs/*
-!.envs/.local/
+.p10k.zsh
+.zshrc
+id_rsa.pub
+**/.log/

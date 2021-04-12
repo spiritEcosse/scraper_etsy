@@ -1,0 +1,6 @@
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=sentry_postgres
+POSTGRES_PORT=5432
+POSTGRES_USER=sentry
+POSTGRES_PASSWORD=sentry

@@ -2,8 +2,10 @@
 Base settings to build other settings files upon.
 """
 from pathlib import Path
-
+import os
 import environ
+from datetime import timedelta
+
 
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # scraper_etsy/
@@ -23,7 +25,7 @@ DEBUG = env.bool("DJANGO_DEBUG", False)
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # though not all of them may be available with every OS.
 # In Windows, this must be set to your system time zone.
-TIME_ZONE = "Kiev"
+TIME_ZONE = "Europe/Kiev"
 # https://docs.djangoproject.com/en/dev/ref/settings/#language-code
 LANGUAGE_CODE = "en-us"
 # https://docs.djangoproject.com/en/dev/ref/settings/#site-id
@@ -71,10 +73,13 @@ THIRD_PARTY_APPS = [
     "django_celery_beat",
     "rest_framework",
     "rest_framework.authtoken",
+    "corsheaders",
+    "django_countries",
 ]
 
 LOCAL_APPS = [
     "scraper_etsy.users.apps.UsersConfig",
+    "scraper_etsy.items.apps.TagsConfig",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -133,6 +138,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 # STATIC
@@ -294,10 +300,61 @@ SOCIALACCOUNT_ADAPTER = "scraper_etsy.users.adapters.SocialAccountAdapter"
 # django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",), # AllowAny
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
 }
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+CORS_ALLOW_CREDENTIALS = True
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
+
+REDIS_URL = env("REDIS_URL")
+
+JWT_AUTH = {
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'simple_rest.utils.custom_jwt_response_handler'
+}
+
+DATETIME_FORMAT = [
+    '%Y-%m-%d %H:%M:%S'
+]
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+
+    'ALGORITHM': 'HS256',
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+
+    'JTI_CLAIM': 'jti',
+
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+}
+
+COUNTDOWN = 5
+COUNTDOWN_FIRST_RUN = 5
+MAX_RETRIES = 100
+LIMIT = 4 * 16
+COUNT_TAGS = 1
+SALES = 1
+YEAR_STORE_BASE = None
+COUNTRIES = []
+MAX_ON_PAGE = 4 * 16

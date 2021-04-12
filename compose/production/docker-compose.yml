@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  wr:
+    build: .
+    image: shevchenkoigor/scraper_etsy:wr
+    ports:
+      - "2434:22"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

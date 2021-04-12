@@ -3,6 +3,7 @@ version: '3'
 volumes:
   local_postgres_data: {}
   local_postgres_data_backups: {}
+  redis_volume: {}
 
 services:
   django: &django
@@ -11,6 +12,7 @@ services:
       dockerfile: ./compose/local/django/Dockerfile
     image: scraper_etsy_local_django
     container_name: django
+    restart: on-failure
     depends_on:
       - postgres
       - mailhog
@@ -20,8 +22,26 @@ services:
       - ./.envs/.local/.django
       - ./.envs/.local/.postgres
     ports:
-      - "8000:8000"
+      - "8003:8000"
     command: /start
+
+  node:
+    build:
+      context: ./frontend
+      dockerfile: ../compose/local/node/Dockerfile
+    image: scraper_etsy_local_node
+    depends_on:
+      - django
+    volumes:
+      - ./frontend:/app
+      # http://jdlm.info/articles/2016/03/06/lessons-building-node-app-docker.html
+      - /app/node_modules
+    command: npm start
+    tty: true
+    ports:
+      - "3000:3000"
+      # Expose browsersync UI: https://www.browsersync.io/docs/options/#option-ui
+      - "3001:3001"
 
   postgres:
     build:
@@ -34,6 +54,8 @@ services:
       - local_postgres_data_backups:/backups
     env_file:
       - ./.envs/.local/.postgres
+    ports:
+      - "5434:5432"
 
   mailhog:
     image: mailhog/mailhog:v1.0.0
@@ -43,6 +65,8 @@ services:
 
   redis:
     image: redis:5.0
+    volumes:
+      - redis_volume:/data
     container_name: redis
 
   celeryworker:
@@ -72,5 +96,5 @@ services:
     image: scraper_etsy_local_flower
     container_name: flower
     ports:
-      - "5555:5555"
+      - "5551:5555"
     command: /start-flower

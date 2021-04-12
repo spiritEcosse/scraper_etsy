@@ -3,21 +3,34 @@ version: '3'
 volumes:
   production_postgres_data: {}
   production_postgres_data_backups: {}
-  production_traefik: {}
+  production_redis_volume: {}
 
 services:
   django: &django
     build:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
-    image: scraper_etsy_production_django
+    image: shevchenkoigor/scraper_etsy:django
     depends_on:
       - postgres
       - redis
+    ports:
+      - "8000:8000"
     env_file:
       - ./.envs/.production/.django
       - ./.envs/.production/.postgres
     command: /start
+
+  node:
+    build:
+      context: ./frontend
+      dockerfile: ../compose/production/node/Dockerfile
+    image: shevchenkoigor/scraper_etsy:node
+    depends_on:
+      - django
+    ports:
+      - "80:80"
+    command: serve -s build -l 80
 
   postgres:
     build:
@@ -27,39 +40,31 @@ services:
     volumes:
       - production_postgres_data:/var/lib/postgresql/data
       - production_postgres_data_backups:/backups
+    ports:
+      - "5432:5432"
     env_file:
       - ./.envs/.production/.postgres
 
-  traefik:
-    build:
-      context: .
-      dockerfile: ./compose/production/traefik/Dockerfile
-    image: scraper_etsy_production_traefik
-    depends_on:
-      - django
-    volumes:
-      - production_traefik:/etc/traefik/acme
-    ports:
-      - "0.0.0.0:80:80"
-      - "0.0.0.0:443:443"
-      - "0.0.0.0:5555:5555"
-
   redis:
     image: redis:5.0
+    volumes:
+      - production_redis_volume:/data
 
   celeryworker:
     <<: *django
     image: scraper_etsy_production_celeryworker
+    ports: []
     command: /start-celeryworker
 
   celerybeat:
     <<: *django
     image: scraper_etsy_production_celerybeat
+    ports: []
     command: /start-celerybeat
 
   flower:
     <<: *django
     image: scraper_etsy_production_flower
+    ports:
+      - "5555:5555"
     command: /start-flower
-
-  
